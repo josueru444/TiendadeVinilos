@@ -1,5 +1,6 @@
 package com.example.tiendadevinilos
 
+import LoginPage
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,8 +10,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.tiendadevinilos.pages.HomePage
-import com.example.tiendadevinilos.pages.LoginPage
 import com.example.tiendadevinilos.ui.theme.TiendaDeVinilosTheme
+import java.lang.reflect.Modifier
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
