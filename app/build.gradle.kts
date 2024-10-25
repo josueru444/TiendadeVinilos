@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -40,8 +41,39 @@ android {
 }
 
 dependencies {
+    //implementation("com.google.dagger:dagger-compiler:2.51.1")
+    //ksp("com.google.dagger:dagger-compiler:2.51.1")
+
     //icons
-    implementation ("androidx.compose.material:material-icons-extended:1.7.4")
+    implementation("androidx.compose.material:material-icons-extended:1.7.4")
+    //Google Login
+    implementation("com.github.stevdza-san:OneTapCompose:1.0.14")
+
+    //implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
+    implementation("io.coil-kt:coil:2.4.0") // Última versión en este momento
+    implementation("io.coil-kt:coil-compose:2.4.0") // Para Jetpack Compose
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
+
+    //livedata
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
+
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
+    //Shimmer
+    implementation ("com.facebook.shimmer:shimmer:0.5.0")
+
+
+    //
+    implementation ("com.google.accompanist:accompanist-pager:0.28.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
 
 
     implementation(libs.androidx.core.ktx)

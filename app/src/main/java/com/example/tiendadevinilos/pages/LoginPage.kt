@@ -1,3 +1,5 @@
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,14 +10,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -44,6 +45,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
+import com.stevdzasan.onetap.GoogleUser
+import com.stevdzasan.onetap.OneTapSignInWithGoogle
+import com.stevdzasan.onetap.getUserFromTokenId
+import com.stevdzasan.onetap.rememberOneTapSignInState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,6 +75,7 @@ fun LoginPage(navController: NavController) {
         Spacer(modifier = Modifier.height(80.dp))
 
         TextField(
+
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 containerColor = colorResource(R.color.input_background),
                 focusedBorderColor = Color.Transparent,
@@ -146,38 +152,68 @@ fun LoginPage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Row {
-            Button(
-                onClick = { /*TODO*/ },
-                content = {
-                    Image(
-                        painter = painterResource(id = R.drawable.google_logo),
-                        contentDescription = "Google Logo",
-                        modifier = Modifier
-                            .width(37.dp)
-                            .height(37.dp)
-                    )
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Transparent
-                )
-            )
-            Button(
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+
+        ) {
+            GoogleLogin()
+
+            IconButton(
                 onClick = { /*TODO*/ },
                 content = {
                     Image(
                         painter = painterResource(id = R.drawable.facebook_logo),
                         contentDescription = "Google Logo",
                         modifier = Modifier
-                            .width(37.dp)
+                            .size(41.dp)
                     )
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Transparent,
-                )
+                }
+
             )
         }
     }
 }
+
+
+@Composable
+fun GoogleLogin() {
+    val state = rememberOneTapSignInState()
+    var user: GoogleUser? by remember { mutableStateOf(null) }
+    val context = LocalContext.current
+    OneTapSignInWithGoogle(
+        state = state,
+        clientId = "253523235046-akq9kgv3k1o9hklbh3bgicu9f7649bt0.apps.googleusercontent.com\n",
+        rememberAccount = true,
+        onTokenIdReceived = {
+            user = getUserFromTokenId(tokenId = it)
+            Toast.makeText(context, user?.givenName, Toast.LENGTH_SHORT).show()
+        },
+        onDialogDismissed = {
+            Log.d("MainActivity", it)
+        }
+    )
+
+    if (state.opened == false) {
+        IconButton(
+            onClick = { state.open() },
+            content = {
+                Image(
+                    painter = painterResource(id = R.drawable.google_logo),
+                    contentDescription = "Google Logo",
+                    modifier = Modifier
+                        .size(41.dp)
+                )
+            }
+
+        )
+
+    } else {
+        CircularProgressIndicator(
+            color = Color.Black
+        )
+
+    }
+}
+
+
