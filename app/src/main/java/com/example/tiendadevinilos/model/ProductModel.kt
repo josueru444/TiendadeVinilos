@@ -1,6 +1,5 @@
 package com.example.tiendadevinilos.model
 
-import android.R
 import java.math.BigInteger
 
 data class ProductModel(

@@ -41,18 +41,16 @@ android {
 }
 
 dependencies {
-    //implementation("com.google.dagger:dagger-compiler:2.51.1")
-    //ksp("com.google.dagger:dagger-compiler:2.51.1")
 
     //icons
     implementation("androidx.compose.material:material-icons-extended:1.7.4")
+    
     //Google Login
     implementation("com.github.stevdza-san:OneTapCompose:1.0.14")
 
     //implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
-    implementation("io.coil-kt:coil:2.4.0") // Última versión en este momento
-    implementation("io.coil-kt:coil-compose:2.4.0") // Para Jetpack Compose
-
+    implementation("io.coil-kt:coil:2.4.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -74,6 +72,10 @@ dependencies {
     //
     implementation ("com.google.accompanist:accompanist-pager:0.28.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
+
+    //datastore
+    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+
 
 
     implementation(libs.androidx.core.ktx)

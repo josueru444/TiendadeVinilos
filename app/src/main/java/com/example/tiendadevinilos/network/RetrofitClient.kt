@@ -7,12 +7,25 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     private const val BASE_URL = "http://192.168.0.14:8000/"
+    private const val AUTH_TOKEN = "TPW9cWC0J6eAuXsgX90nPXjLEZbrSTE5XJcqBFsM"
+
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
+        .addInterceptor { chain ->
+            val original = chain.request()
+            val requestWithToken = original.newBuilder()
+                .header("X-CSRF-TOKEN", AUTH_TOKEN)
+                .header("Accept", "application/json")
+                .header("X-Requested-With", "XMLHttpRequest")
+                .method(original.method, original.body)
+                .build()
+
+            chain.proceed(requestWithToken)
+        }
         .build()
 
     val instance: ApiService by lazy {

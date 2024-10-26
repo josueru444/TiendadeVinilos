@@ -1,6 +1,7 @@
 package com.example.tiendadevinilos.pages
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -19,11 +21,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.packInts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -32,14 +36,34 @@ import com.example.tiendadevinilos.components.CustomCarousel
 import com.example.tiendadevinilos.components.ModalNavigationDrawerSample
 import com.example.tiendadevinilos.components.shimmerEffect
 import com.example.tiendadevinilos.model.ProductModel
+import com.example.tiendadevinilos.model.UserModel
 import com.example.tiendadevinilos.viewmodel.ProductsViewModel
+import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomePage(navController: NavController, productViewModel: ProductsViewModel = viewModel()) {
+fun HomePage(
+    navController: NavController,
+    productViewModel: ProductsViewModel = viewModel(),
+    userViewModel: UserViewModel
+) {
+
+    val context = LocalContext.current
+    val userData = userViewModel.userData.observeAsState(
+        initial = UserModel(
+            user_id = null,
+            email = null,
+            fullName = null,
+            picture = null
+        )
+    )
+    if (userData.value.picture == null) {
+        Toast.makeText(context, "picture: ${userData.value.picture}", Toast.LENGTH_SHORT)
+            .show()
+    }
 
     val products = productViewModel.products.observeAsState(emptyList()).value
     val carouselProducts = productViewModel.carouselProducts.observeAsState(emptyList()).value
@@ -51,15 +75,17 @@ fun HomePage(navController: NavController, productViewModel: ProductsViewModel =
     ModalNavigationDrawerSample(
         drawerState = drawerState,
         navController = navController,
+        userName = userData.value.fullName ?: "",
+        imgProfile = userData.value.picture ?: "",
+        userViewModel = userViewModel
     ) {
         Scaffold(
             topBar = {
                 TopBar(drawerState = drawerState, scope = scope)
             }, content = { paddingValues ->
                 if (isLoading) {
-
                     SkeletonContent(modifier = Modifier.padding(paddingValues))
-                } else {
+                } else if (products.isNotEmpty()) {
 
                     Content(
                         modifier = Modifier.padding(paddingValues),
@@ -67,10 +93,40 @@ fun HomePage(navController: NavController, productViewModel: ProductsViewModel =
                         carouselProducts = carouselProducts,
                         navController = navController
                     )
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Error al cargar los datos",
+                            color = Color.Black,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Button(
+                            onClick = {
+                                productViewModel.getProducts()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black,
+                                contentColor = Color.White
+                            ),
+                            modifier = Modifier.padding(top = 16.dp),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(text = "Reintentar", color = Color.White)
+                        }
+                    }
+
                 }
             })
     }
 }
+
 
 @Composable
 fun SkeletonContent(modifier: Modifier) {
@@ -90,7 +146,7 @@ fun SkeletonContent(modifier: Modifier) {
                     .width(155.dp)
 
             ) {
-                // Contenido del skeleton
+
                 OutlinedCard(
                     modifier = Modifier.fillMaxSize(),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -108,6 +164,7 @@ fun SkeletonContent(modifier: Modifier) {
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

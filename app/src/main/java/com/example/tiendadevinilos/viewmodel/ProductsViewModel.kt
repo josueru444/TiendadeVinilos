@@ -21,31 +21,36 @@ class ProductsViewModel : ViewModel() {
     private val _isLoading = MutableLiveData<Boolean>(true)
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
     init {
         if (_products.value == null) {
             getProducts()
         }
     }
 
-
     fun getProducts() {
         viewModelScope.launch {
             try {
                 val productList = repository.getProducts()
-                _products.value = productList
-                _carouselProducts.value = productList.shuffled().take(6)
-                Log.d(
-                    "ProductsViewModel",
-                    "Productos obtenidos: $productList"
-                ) // Log de los productos
+                if (productList.isNotEmpty()) {
+                    _products.value = productList
+                    _carouselProducts.value = productList.shuffled().take(6)
+                    Log.d("ProductsViewModel", "Productos obtenidos: $productList")
+                } else {
+                    _error.value = "No se encontraron productos"
+                }
             } catch (e: Exception) {
-                Log.e("ProductsViewModel", "Error al obtener productos", e)
-
+                _error.value = "Error al obtener productos: ${e.message}"
+                Log.e("Error ProductsViewModel", "Error al obtener productos", e)
             } finally {
                 _isLoading.value = false
                 Log.d("ProductsViewModel", "isLoading actualizado: ${_isLoading.value}")
             }
         }
     }
+
+
 
 }

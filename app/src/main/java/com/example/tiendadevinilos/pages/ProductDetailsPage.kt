@@ -60,6 +60,7 @@ fun ProductDetails(navController: NavController, productId: String) {
     Scaffold(topBar = {
         TopBar(navController = navController)
     }, content = { paddingValues ->
+
         ContentProduct(
             modifier = Modifier.padding(paddingValues), id = productId, product = product.value
         )
@@ -193,7 +194,6 @@ private fun ContentProduct(modifier: Modifier, id: String, product: ProductModel
                 Text(text = "Agregar al carrito ", fontSize = 15.sp, fontWeight = FontWeight.Medium)
             }
             Spacer(modifier = Modifier.size(5.dp))
-
 
 
         }
