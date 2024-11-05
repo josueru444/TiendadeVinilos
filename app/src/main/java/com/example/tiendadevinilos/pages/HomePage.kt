@@ -1,7 +1,6 @@
 package com.example.tiendadevinilos.pages
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
@@ -27,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.packInts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -51,7 +50,7 @@ fun HomePage(
     userViewModel: UserViewModel
 ) {
 
-    val context = LocalContext.current
+    LocalContext.current
     val userData = userViewModel.userData.observeAsState(
         initial = UserModel(
             user_id = null,
@@ -60,10 +59,6 @@ fun HomePage(
             picture = null
         )
     )
-    if (userData.value.picture == null) {
-        Toast.makeText(context, "picture: ${userData.value.picture}", Toast.LENGTH_SHORT)
-            .show()
-    }
 
     val products = productViewModel.products.observeAsState(emptyList()).value
     val carouselProducts = productViewModel.carouselProducts.observeAsState(emptyList()).value
@@ -80,6 +75,21 @@ fun HomePage(
         userViewModel = userViewModel
     ) {
         Scaffold(
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = {
+                        if (userData.value.user_id.toString().isNotEmpty()) {
+                            navController.navigate("cartPage")
+                        } else {
+                            navController.navigate("loginPage")
+                        }
+                    },
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                ) {
+                    Icon(Icons.Filled.ShoppingCart, contentDescription = "Cart")
+                }
+            },
             topBar = {
                 TopBar(drawerState = drawerState, scope = scope)
             }, content = { paddingValues ->
@@ -293,6 +303,9 @@ fun Content(
                 }
             }
         }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+        }
     }
+
 }
 

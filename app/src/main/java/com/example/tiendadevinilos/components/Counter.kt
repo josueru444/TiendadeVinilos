@@ -4,9 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,17 +25,23 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tiendadevinilos.R
+import com.example.tiendadevinilos.viewmodel.CounterViewModel
 
 
 @Composable
-fun CounterComponent(maxCount: Int) {
-    val count = remember { mutableIntStateOf(1) }
+fun CounterComponent(
+    maxCount: Int,
+    defaultValue:Int = 1,
+    modifier: Modifier,
+    counterViewModel: CounterViewModel = viewModel()
+) {
+    val count = counterViewModel.counter.value
+
+
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 25.dp)
-            .height(41.dp),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End
     ) {
@@ -54,7 +58,7 @@ fun CounterComponent(maxCount: Int) {
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorResource(R.color.background_descrease),
                 ),
-                onClick = { if (count.value > 1) count.value-- },
+                onClick = { counterViewModel.decrement() },
                 shape = RoundedCornerShape(
                     topStart = 10.dp,
                     bottomStart = 10.dp,
@@ -73,7 +77,7 @@ fun CounterComponent(maxCount: Int) {
                 )
             }
             Text(
-                text = count.value.toString(),
+                text = counterViewModel.counter.value.toString(),
                 fontSize = 15.sp,
                 color = colorResource(R.color.product_price),
                 modifier = Modifier
@@ -84,7 +88,7 @@ fun CounterComponent(maxCount: Int) {
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                 ),
-                onClick = { if (count.value < maxCount) count.value++ },
+                onClick = { counterViewModel.increment(maxCount) },
                 shape = RoundedCornerShape(
                     topStart = 0.dp,
                     bottomStart = 0.dp,

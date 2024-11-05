@@ -1,13 +1,14 @@
 package com.example.tiendadevinilos
+
 import LoginPage
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.tiendadevinilos.pages.CartPage
 import com.example.tiendadevinilos.pages.HomePage
 import com.example.tiendadevinilos.pages.ProductDetails
 import com.example.tiendadevinilos.repository.UserPreferencesRepository
@@ -16,7 +17,6 @@ import com.example.tiendadevinilos.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     private lateinit var userViewModel: UserViewModel
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TiendaDeVinilosTheme {
                 val navController = rememberNavController()
+
                 NavHost(
                     navController = navController,
                     startDestination = Routes.homePage,
@@ -41,7 +42,10 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Routes.productPage) { backStackEntry ->
                             val idProduct = backStackEntry.arguments?.getString("idProduct")
-                            ProductDetails(navController, idProduct ?: "0")
+                            ProductDetails(navController, idProduct ?: "0", userViewModel=userViewModel)
+                        }
+                        composable(Routes.cartPage) {
+                            CartPage(navController,userViewModel = userViewModel)
                         }
                     })
             }

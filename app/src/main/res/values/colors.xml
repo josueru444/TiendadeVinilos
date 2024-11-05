@@ -15,5 +15,7 @@
     <color name="product_price">#8C8C8C</color>
     <color name="background_descrease">#A8A8A8</color>
     <color name="background_increase">#000</color>
+    <color name="cart_item_background">#F8F8F8</color>
+    <color name="elevated_card">#E6E6E6</color>
 
 </resources>

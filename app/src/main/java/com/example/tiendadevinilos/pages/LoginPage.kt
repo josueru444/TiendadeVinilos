@@ -25,12 +25,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
-import com.example.tiendadevinilos.model.UserModel
 import com.example.tiendadevinilos.repository.UserPreferencesRepository
 import com.example.tiendadevinilos.viewmodel.AddUserViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
@@ -151,10 +149,10 @@ fun LoginPage(navController: NavController) {
 private fun GoogleLogin(
     navController: NavController,
 ) {
-
     val context = LocalContext.current
     val userPreferencesRepository = UserPreferencesRepository(context)
-    val viewModelSaveDataStore: UserViewModel = remember { UserViewModel(userPreferencesRepository) }
+    val viewModelSaveDataStore: UserViewModel =
+        remember { UserViewModel(userPreferencesRepository) }
 
     val state = rememberOneTapSignInState()
     var user: GoogleUser? by remember { mutableStateOf(null) }
@@ -182,15 +180,14 @@ private fun GoogleLogin(
                     fullName,
                     picture
                 )
-
-                viewModelSaveDataStore.saveUserData(userId, email, fullName, picture)
+                viewModelSaveDataStore.saveUserData(
+                    userId,
+                    email,
+                    fullName,
+                    picture
+                )
             }
-
-
             navController.popBackStack()
-
-
-
             if (isLoading) {
                 Toast.makeText(context, "Cargando...", Toast.LENGTH_SHORT).show()
             }
@@ -200,7 +197,6 @@ private fun GoogleLogin(
             Toast.makeText(context, "No se ha podido iniciar sesión", Toast.LENGTH_SHORT).show()
         }
     )
-
     if (state.opened) {
         CircularProgressIndicator(color = Color.Black)
     } else {
@@ -213,7 +209,5 @@ private fun GoogleLogin(
         }
     }
 
-    responseMessage?.let {
-        Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-    }
+
 }

@@ -22,11 +22,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,30 +45,60 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
+import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.components.CounterComponent
 import com.example.tiendadevinilos.components.ExpandableText
 import com.example.tiendadevinilos.model.ProductModel
+import com.example.tiendadevinilos.model.UserModel
+import com.example.tiendadevinilos.viewmodel.CartViewModel
+import com.example.tiendadevinilos.viewmodel.CounterViewModel
 import com.example.tiendadevinilos.viewmodel.ProductDetailsViewModel
+import com.example.tiendadevinilos.viewmodel.UserViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetails(navController: NavController, productId: String) {
-    val viewModel: ProductDetailsViewModel = viewModel()
+fun ProductDetails(navController: NavController, productId: String, userViewModel: UserViewModel) {
 
+    val viewModel: ProductDetailsViewModel = viewModel()
     val product = viewModel.product.observeAsState()
+    val userData = userViewModel.userData.observeAsState(
+        initial = UserModel(
+            user_id = null,
+            email = null,
+            fullName = null,
+            picture = null
+        )
+    )
+
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(productId) {
         viewModel.getProductById(productId.toLong())
     }
 
-    Scaffold(topBar = {
-        TopBar(navController = navController)
-    }, content = { paddingValues ->
+    Scaffold(
 
-        ContentProduct(
-            modifier = Modifier.padding(paddingValues), id = productId, product = product.value
-        )
-    })
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
+
+        topBar = {
+            TopBar(navController = navController)
+        }, content = { paddingValues ->
+
+            ContentProduct(
+                modifier = Modifier.padding(paddingValues),
+                id = productId,
+                product = product.value,
+                user_id = userData.value.user_id ?: null,
+                navController = navController,
+                snackbarHostState = snackbarHostState,
+                scope = scope
+            )
+        })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,7 +136,20 @@ private fun TopBar(navController: NavController) {
 
 
 @Composable
-private fun ContentProduct(modifier: Modifier, id: String, product: ProductModel?) {
+private fun ContentProduct(
+    modifier: Modifier,
+    id: String,
+    product: ProductModel?,
+    user_id: String?,
+    snackbarHostState: SnackbarHostState,
+    scope: CoroutineScope,
+    navController: NavController
+) {
+
+    val cartViewModel: CartViewModel = viewModel()
+    val counterViewModel: CounterViewModel = viewModel()
+
+    var counter = counterViewModel.counter
 
     LazyColumn(
         modifier = modifier
@@ -157,7 +204,13 @@ private fun ContentProduct(modifier: Modifier, id: String, product: ProductModel
                     .heightIn(min = 154.dp)
             )
 
-            CounterComponent(maxCount = product?.quantity ?: 1)
+            CounterComponent(
+                maxCount = product?.quantity ?: 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 25.dp)
+                    .height(41.dp)
+            )
 
             Spacer(modifier = Modifier.size(10.dp))
 
@@ -188,7 +241,27 @@ private fun ContentProduct(modifier: Modifier, id: String, product: ProductModel
                     .height(41.dp)
                     .padding(horizontal = 25.dp),
                 shape = RoundedCornerShape(10.dp),
-                onClick = {},
+                onClick = {
+
+                    if (user_id != "") {
+                        cartViewModel.addToCart(
+                            user_id = user_id.toString(),
+                            id_vinyl = id,
+                            quantity = counter.value
+                        )
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Agregado al carrito",
+                                actionLabel = "Aceptar"
+                            )
+                        }
+
+                        counter.value = 1
+
+                    } else {
+                        navController.navigate(Routes.loginPage)
+                    }
+                },
 
                 ) {
                 Text(text = "Agregar al carrito ", fontSize = 15.sp, fontWeight = FontWeight.Medium)
