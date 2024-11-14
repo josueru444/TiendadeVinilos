@@ -1,5 +1,6 @@
 package com.example.tiendadevinilos.pages
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,26 +27,31 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
+import com.example.tiendadevinilos.biometric.BiometricAuthenticator
 import com.example.tiendadevinilos.components.CounterComponent
 import com.example.tiendadevinilos.components.ExpandableText
 import com.example.tiendadevinilos.model.ProductModel
@@ -59,7 +65,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetails(navController: NavController, productId: String, userViewModel: UserViewModel) {
+fun ProductDetails(
+    navController: NavController,
+    productId: String,
+    userViewModel: UserViewModel,
+    biometricAuthenticator: BiometricAuthenticator
+) {
 
     val viewModel: ProductDetailsViewModel = viewModel()
     val product = viewModel.product.observeAsState()
@@ -80,7 +91,6 @@ fun ProductDetails(navController: NavController, productId: String, userViewMode
     }
 
     Scaffold(
-
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
@@ -88,7 +98,6 @@ fun ProductDetails(navController: NavController, productId: String, userViewMode
         topBar = {
             TopBar(navController = navController)
         }, content = { paddingValues ->
-
             ContentProduct(
                 modifier = Modifier.padding(paddingValues),
                 id = productId,
@@ -96,8 +105,10 @@ fun ProductDetails(navController: NavController, productId: String, userViewMode
                 user_id = userData.value.user_id ?: null,
                 navController = navController,
                 snackbarHostState = snackbarHostState,
-                scope = scope
+                scope = scope,
+                biometricAuthenticator = biometricAuthenticator
             )
+
         })
 }
 
@@ -135,6 +146,7 @@ private fun TopBar(navController: NavController) {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContentProduct(
     modifier: Modifier,
@@ -143,13 +155,19 @@ private fun ContentProduct(
     user_id: String?,
     snackbarHostState: SnackbarHostState,
     scope: CoroutineScope,
-    navController: NavController
+    navController: NavController,
+    biometricAuthenticator: BiometricAuthenticator
 ) {
+    //fingerprint
+    val activity = LocalContext.current as FragmentActivity
+    var message: String = remember { mutableStateOf("").toString() }
+    val scaffoldState = rememberBottomSheetScaffoldState()
 
     val cartViewModel: CartViewModel = viewModel()
     val counterViewModel: CounterViewModel = viewModel()
-
     var counter = counterViewModel.counter
+
+    val context=LocalContext.current
 
     LazyColumn(
         modifier = modifier
@@ -223,7 +241,28 @@ private fun ContentProduct(
                     .height(41.dp)
                     .padding(horizontal = 25.dp),
                 shape = RoundedCornerShape(10.dp),
-                onClick = {},
+                onClick = {
+                    biometricAuthenticator.promptBiometricAuth(
+                        title = "Verify your identity",
+                        subTitle = "Use your fingerprint",
+                        negativeButtonText = "Cancel",
+                        fragmentActivity = activity,
+                        onSuccess = {
+                            message = "Success"
+                            scope.launch {
+                            scaffoldState.bottomSheetState.expand()
+                            }
+                            Toast.makeText(context,"Huella Escaneada",Toast.LENGTH_SHORT).show()
+                        },
+                        onError = { _, errorString ->
+                            message = errorString.toString()
+                        },
+                        onFailed = {
+                            message = "Verification error"
+                        }
+                    )
+
+                },
 
                 ) {
                 Text(text = "Comprar ahora", fontSize = 15.sp, fontWeight = FontWeight.Medium)
@@ -241,8 +280,8 @@ private fun ContentProduct(
                     .height(41.dp)
                     .padding(horizontal = 25.dp),
                 shape = RoundedCornerShape(10.dp),
-                onClick = {
 
+                onClick = {
                     if (user_id != "") {
                         cartViewModel.addToCart(
                             user_id = user_id.toString(),
@@ -272,6 +311,4 @@ private fun ContentProduct(
         }
     }
 }
-
-
 

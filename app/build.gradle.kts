@@ -7,12 +7,13 @@ plugins {
 
 android {
     namespace = "com.example.tiendadevinilos"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.tiendadevinilos"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 28
+        //noinspection EditedTargetSdkVersion
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -75,6 +76,9 @@ dependencies {
 
     //datastore
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
+
+    //Fingerprint integration
+    implementation("androidx.biometric:biometric:1.4.0-alpha02")
 
 
 

@@ -13,7 +13,6 @@ object RetrofitClient {
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
-
     private val client = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor { chain ->
@@ -24,7 +23,6 @@ object RetrofitClient {
                 .header("X-Requested-With", "XMLHttpRequest")
                 .method(original.method, original.body)
                 .build()
-
             chain.proceed(requestWithToken)
         }
         .build()

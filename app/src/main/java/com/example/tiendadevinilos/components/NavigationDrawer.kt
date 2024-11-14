@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
-import com.example.tiendadevinilos.model.UserModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -80,6 +79,10 @@ fun ModalNavigationDrawerSample(
 
                 Spacer(Modifier.height(12.dp))
                 drawerItems.forEach { item ->
+                    if(userName == "" && (item.name == "Carrito" || item.name == "Compras" || item.name == "Cerrar Sesión")) {
+                        return@forEach
+                    }
+
                     NavigationDrawerItem(
                         colors = NavigationDrawerItemDefaults.colors(
                             unselectedContainerColor = Color.White,
@@ -139,8 +142,8 @@ private fun ProfileSection(
         AsyncImage(
             model = if (imgProfile == "") {
                 "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-            }else{
-                imgProfile?: ""
+            } else {
+                imgProfile ?: ""
             },
             contentDescription = null,
             modifier = Modifier
@@ -156,8 +159,8 @@ private fun ProfileSection(
             Text(
                 text = if (userName == "") {
                     "Inicia Sesión"
-                }else{
-                    userName?: ""
+                } else {
+                    userName ?: ""
                 },
                 color = Color.Black,
                 fontSize = 15.sp,

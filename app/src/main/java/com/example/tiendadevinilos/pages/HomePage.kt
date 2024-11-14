@@ -33,6 +33,7 @@ import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.components.CustomCarousel
 import com.example.tiendadevinilos.components.ModalNavigationDrawerSample
+import com.example.tiendadevinilos.components.SkeletonContent
 import com.example.tiendadevinilos.components.shimmerEffect
 import com.example.tiendadevinilos.model.ProductModel
 import com.example.tiendadevinilos.model.UserModel
@@ -135,46 +136,6 @@ fun HomePage(
                 }
             })
     }
-}
-
-
-@Composable
-fun SkeletonContent(modifier: Modifier) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(10) {
-            Box(
-                modifier = Modifier
-                    .height(210.dp)
-                    .width(155.dp)
-
-            ) {
-
-                OutlinedCard(
-                    modifier = Modifier.fillMaxSize(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color.Black),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                            .background(Color.White)
-                            .shimmerEffect()
-                    )
-
-                }
-            }
-        }
-    }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
