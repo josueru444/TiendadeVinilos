@@ -1,22 +1,29 @@
-package com.example.tiendadevinilos.pages
+package com.example.tiendadevinilos.ui.home
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,158 +38,81 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
-import com.example.tiendadevinilos.components.CustomCarousel
-import com.example.tiendadevinilos.components.ModalNavigationDrawerSample
-import com.example.tiendadevinilos.components.SkeletonContent
-import com.example.tiendadevinilos.components.shimmerEffect
+import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.model.ProductModel
-import com.example.tiendadevinilos.model.UserModel
+import com.example.tiendadevinilos.ui.components.CustomCarousel
+import com.example.tiendadevinilos.ui.components.SkeletonContent
+import com.example.tiendadevinilos.ui.genreselection.GenreViewModel
 import com.example.tiendadevinilos.viewmodel.ProductsViewModel
-import com.example.tiendadevinilos.viewmodel.UserViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomePage(
     navController: NavController,
     productViewModel: ProductsViewModel = viewModel(),
-    userViewModel: UserViewModel
+
+    genreViewModel: GenreViewModel = viewModel(),
 ) {
 
-    LocalContext.current
-    val userData = userViewModel.userData.observeAsState(
-        initial = UserModel(
-            user_id = null,
-            email = null,
-            fullName = null,
-            picture = null
-        )
-    )
-
     val products = productViewModel.products.observeAsState(emptyList()).value
+    val genreProducts = genreViewModel.userGenreList.observeAsState(emptyList()).value
+
     val carouselProducts = productViewModel.carouselProducts.observeAsState(emptyList()).value
     val isLoading = productViewModel.isLoading.observeAsState(true).value
 
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    ModalNavigationDrawerSample(
-        drawerState = drawerState,
-        navController = navController,
-        userName = userData.value.fullName ?: "",
-        imgProfile = userData.value.picture ?: "",
-        userViewModel = userViewModel
-    ) {
-        Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        if (userData.value.user_id.toString().isNotEmpty()) {
-                            navController.navigate("cartPage")
-                        } else {
-                            navController.navigate("loginPage")
-                        }
-                    },
-                    containerColor = Color.White,
-                    contentColor = Color.Black
-                ) {
-                    Icon(Icons.Filled.ShoppingCart, contentDescription = "Cart")
-                }
-            },
-            topBar = {
-                TopBar(drawerState = drawerState, scope = scope)
-            }, content = { paddingValues ->
-                if (isLoading) {
-                    SkeletonContent(modifier = Modifier.padding(paddingValues))
-                } else if (products.isNotEmpty()) {
 
-                    Content(
-                        modifier = Modifier.padding(paddingValues),
-                        products = products,
-                        carouselProducts = carouselProducts,
-                        navController = navController
-                    )
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.White),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Error al cargar los datos",
-                            color = Color.Black,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Button(
-                            onClick = {
-                                productViewModel.getProducts()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Black,
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier.padding(top = 16.dp),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Text(text = "Reintentar", color = Color.White)
-                        }
-                    }
 
-                }
-            })
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TopBar(drawerState: DrawerState, scope: CoroutineScope) {
-    CenterAlignedTopAppBar(colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = Color.White,
-        titleContentColor = Color.Black,
-    ), title = {
-        Text(
-            text = "Tienda de Vinilos", fontWeight = FontWeight.Medium, fontSize = 25.sp
+    if (isLoading) {
+        SkeletonContent()
+    } else if (products.isNotEmpty()) {
+        Content(
+            products = products,
+            carouselProducts = carouselProducts,
+            navController = navController
         )
-    }, navigationIcon = {
-        IconButton(onClick = {
-            scope.launch {
-                drawerState.open()
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Error al cargar los datos",
+                color = Color.Black,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Button(
+                onClick = {
+                    productViewModel.getProducts()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.padding(top = 16.dp),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(text = "Reintentar", color = Color.White)
             }
-        }) {
-            Icon(
-                Icons.Filled.Menu,
-                contentDescription = "Menu",
-                tint = Color.Black,
-                modifier = Modifier.size(30.dp)
-            )
         }
-    }, actions = {
-        IconButton(onClick = {}) {
-            Icon(
-                Icons.Filled.Search,
-                contentDescription = "Search",
-                tint = Color.Black,
-                modifier = Modifier.size(30.dp)
-            )
-        }
-    })
+
+    }
 }
 
 @Composable
 fun Content(
-    modifier: Modifier,
     products: List<ProductModel>,
     carouselProducts: List<ProductModel>,
     navController: NavController
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(horizontal = 16.dp),

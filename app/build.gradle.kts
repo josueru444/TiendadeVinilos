@@ -47,7 +47,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.4")
     
     //Google Login
-    implementation("com.github.stevdza-san:OneTapCompose:1.0.14")
+    implementation("com.github.stevdza-san:OneTapCompose:1.0.13")
 
     //implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
     implementation("io.coil-kt:coil:2.4.0")
@@ -79,8 +79,6 @@ dependencies {
 
     //Fingerprint integration
     implementation("androidx.biometric:biometric:1.4.0-alpha02")
-
-
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

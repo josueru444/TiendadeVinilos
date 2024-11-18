@@ -1,4 +1,4 @@
-package com.example.tiendadevinilos.components
+package com.example.tiendadevinilos.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

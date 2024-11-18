@@ -1,4 +1,4 @@
-package com.example.tiendadevinilos.viewmodel
+package com.example.tiendadevinilos.ui.produc
 
 import android.util.Log
 import androidx.lifecycle.LiveData

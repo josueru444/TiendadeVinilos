@@ -1,4 +1,4 @@
-package com.example.tiendadevinilos.components
+package com.example.tiendadevinilos.ui.components
 
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api

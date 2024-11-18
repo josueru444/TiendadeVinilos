@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.tiendadevinilos.model.UserModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore("user_preferences")
@@ -34,21 +35,23 @@ class UserPreferencesRepository(private val context: Context) {
         }
     }
 
-    val userData: Flow<UserModel> = dataStore.data.catch { exception ->
-        if (exception is Exception) {
-            emit(emptyPreferences())
-        } else {
-            throw exception
+    val userData: Flow<UserModel> = dataStore.data
+        .catch { exception ->
+            if (exception is Exception) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
         }
-    }.map { preferences ->
-        UserModel(
-            user_id = preferences[ID_USER_KEY] ?: "",
-            email = preferences[EMAIL_KEY] ?: "",
-            fullName = preferences[FULL_NAME_KEY] ?: "",
-            picture = preferences[PICTURE_KEY] ?: ""
-        )
+        .map { preferences ->
+            UserModel(
+                user_id = preferences[ID_USER_KEY] ?: "",
+                email = preferences[EMAIL_KEY] ?: "",
+                fullName = preferences[FULL_NAME_KEY] ?: "",
+                picture = preferences[PICTURE_KEY] ?: ""
+            )
+        }
 
-    }
 
 
 }

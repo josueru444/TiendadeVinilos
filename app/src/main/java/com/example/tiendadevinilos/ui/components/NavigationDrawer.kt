@@ -1,4 +1,4 @@
-package com.example.tiendadevinilos.components
+package com.example.tiendadevinilos.ui.components
 
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -17,7 +17,14 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
+import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -74,12 +81,13 @@ fun ModalNavigationDrawerSample(
                 ProfileSection(
                     navController,
                     userName = userName,
-                    imgProfile = imgProfile
+                    imgProfile = imgProfile,
+                    drawerState = drawerState
                 )
 
                 Spacer(Modifier.height(12.dp))
                 drawerItems.forEach { item ->
-                    if(userName == "" && (item.name == "Carrito" || item.name == "Compras" || item.name == "Cerrar Sesión")) {
+                    if (userName == "" && (item.name == "Carrito" || item.name == "Compras" || item.name == "Cerrar Sesión")) {
                         return@forEach
                     }
 
@@ -96,13 +104,17 @@ fun ModalNavigationDrawerSample(
                         label = { Text(item.name) },
                         selected = item == selectedItem.value,
                         onClick = {
-
                             selectedItem.value = item
                             scope.launch {
-                                if (item.name == "Cerrar Sesión") {
-                                    userViewModel.clearUserData()
-                                } else {
+                                when (item.name) {
+                                    "Cerrar Sesión" -> userViewModel.clearUserData()
+                                    "Inicio" -> navController.navigate(Routes.homePage)
+                                    "Carrito" -> navController.navigate(Routes.cartPage)
+                                   // "Compras" -> navController.navigate("comprasPage")
+
                                 }
+
+
                                 drawerState.close()
                             }
                         },
@@ -120,25 +132,26 @@ fun ModalNavigationDrawerSample(
 @Composable
 private fun ProfileSection(
     navController: NavController,
+    drawerState: DrawerState,
     imgProfile: String?,
     userName: String?
 ) {
-    val context = LocalContext.current
-
+    val scope = rememberCoroutineScope()
     Row(
         Modifier
             .padding(16.dp)
             .clip(CircleShape)
             .clickable(
                 onClick = {
+                    scope.launch {
+                        drawerState.close()
+                    }
                     navController.navigate("loginPage")
                 }
             ),
         verticalAlignment = Alignment.CenterVertically
-
-
-    ) {
-
+    )
+    {
         AsyncImage(
             model = if (imgProfile == "") {
                 "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"

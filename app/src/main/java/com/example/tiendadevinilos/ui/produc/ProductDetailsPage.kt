@@ -1,4 +1,4 @@
-package com.example.tiendadevinilos.pages
+package com.example.tiendadevinilos.ui.produc
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -13,20 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,13 +43,12 @@ import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.biometric.BiometricAuthenticator
-import com.example.tiendadevinilos.components.CounterComponent
-import com.example.tiendadevinilos.components.ExpandableText
 import com.example.tiendadevinilos.model.ProductModel
 import com.example.tiendadevinilos.model.UserModel
+import com.example.tiendadevinilos.ui.components.CounterComponent
+import com.example.tiendadevinilos.ui.components.ExpandableText
 import com.example.tiendadevinilos.viewmodel.CartViewModel
 import com.example.tiendadevinilos.viewmodel.CounterViewModel
-import com.example.tiendadevinilos.viewmodel.ProductDetailsViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -90,61 +80,21 @@ fun ProductDetails(
         viewModel.getProductById(productId.toLong())
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
 
-        topBar = {
-            TopBar(navController = navController)
-        }, content = { paddingValues ->
-            ContentProduct(
-                modifier = Modifier.padding(paddingValues),
-                id = productId,
-                product = product.value,
-                user_id = userData.value.user_id ?: null,
-                navController = navController,
-                snackbarHostState = snackbarHostState,
-                scope = scope,
-                biometricAuthenticator = biometricAuthenticator
-            )
 
-        })
+    ContentProduct(
+        modifier = Modifier,
+        id = productId,
+        product = product.value,
+        user_id = userData.value.user_id ?: null,
+        navController = navController,
+        snackbarHostState = snackbarHostState,
+        scope = scope,
+        biometricAuthenticator = biometricAuthenticator
+    )
+
+
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TopBar(navController: NavController) {
-    CenterAlignedTopAppBar(colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = Color.White,
-        titleContentColor = Color.Black,
-    ), title = {
-        Text(
-            text = "Más detalles", fontWeight = FontWeight.Medium, fontSize = 25.sp
-        )
-    }, navigationIcon = {
-        IconButton(onClick = {
-            navController.popBackStack()
-        }) {
-            Icon(
-                Icons.Filled.ArrowBackIosNew,
-                contentDescription = "Back",
-                tint = Color.Black,
-                modifier = Modifier.size(30.dp)
-            )
-        }
-    }, actions = {
-        IconButton(onClick = {}) {
-            Icon(
-                Icons.Filled.Search,
-                contentDescription = "Search",
-                tint = Color.Black,
-                modifier = Modifier.size(30.dp)
-            )
-        }
-    })
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -167,7 +117,7 @@ private fun ContentProduct(
     val counterViewModel: CounterViewModel = viewModel()
     var counter = counterViewModel.counter
 
-    val context=LocalContext.current
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = modifier
@@ -250,9 +200,9 @@ private fun ContentProduct(
                         onSuccess = {
                             message = "Success"
                             scope.launch {
-                            scaffoldState.bottomSheetState.expand()
+                                scaffoldState.bottomSheetState.expand()
                             }
-                            Toast.makeText(context,"Huella Escaneada",Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Huella Escaneada", Toast.LENGTH_SHORT).show()
                         },
                         onError = { _, errorString ->
                             message = errorString.toString()

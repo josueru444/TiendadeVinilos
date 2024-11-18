@@ -1,6 +1,7 @@
-package com.example.tiendadevinilos.pages
+package com.example.tiendadevinilos.ui.Cart
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,24 +19,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
@@ -84,116 +79,67 @@ fun CartPage(navController: NavController, userViewModel: UserViewModel) {
             cartViewModel.getCartItems(user_id = userId.toString())
         }
     }
-    Scaffold(
-        topBar = {
-            CartTopBar(navController)
 
-        },
-        content = { paddingValues ->
-            if (isLoadingState.value) {
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator(color = Color.Black)
-                    Text("Obteniendo productos...")
-                }
-            } else if (cartItemsState.value.isNotEmpty()) {
-                CartContentLayout(
-                    paddingValues,
-                    navController = navController,
-                    isLoadingState = isLoadingState,
-                    cartItemsState = cartItemsState,
-                    cartViewModel = cartViewModel
-                )
-            } else if (errorState.value != null) {
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("No se han podido obtener los productos")
-                    Button(
-                        onClick = {
-                            navController.popBackStack()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = Color.Black,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(
-                            "Volver al inicio",
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
-                        )
-                    }
-                }
-            } else {
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("No hay productos en el carrito")
-                }
-            }
-
-        },
-        bottomBar = {
-            if (cartItemsState.value.isNotEmpty()) {
-                BottomBar(
-                    subtotal = subtotal.toString()
-                )
-            }
+    if (isLoadingState.value) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(color = Color.Black)
+            Text("Obteniendo productos...")
         }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CartTopBar(navController: NavController) {
-    CenterAlignedTopAppBar(colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = Color.White,
-        titleContentColor = Color.Black,
-    ), title = {
-        Text(
-            text = "Mi carrito de compras", fontWeight = FontWeight.Medium, fontSize = 25.sp
+    } else if (cartItemsState.value.isNotEmpty()) {
+        CartContentLayout(
+            navController = navController,
+            isLoadingState = isLoadingState,
+            cartItemsState = cartItemsState,
+            cartViewModel = cartViewModel
         )
-    }, navigationIcon = {
-        IconButton(onClick = {
-            navController.popBackStack()
-        }) {
-            Icon(
-                Icons.Filled.ArrowBackIosNew,
-                contentDescription = "Back",
-                tint = Color.Black,
-                modifier = Modifier.size(30.dp)
-            )
+    } else if (errorState.value != null) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("No se han podido obtener los productos")
+            Button(
+                onClick = {
+                    navController.popBackStack()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Black,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    "Volver al inicio",
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp
+                )
+            }
         }
-    }, actions = {
-        IconButton(onClick = {}) {
-            Icon(
-                Icons.Filled.Search,
-                contentDescription = "Search",
-                tint = Color.Black,
-                modifier = Modifier.size(30.dp)
-            )
+    } else {
+        Column(
+            Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("No hay productos en el carrito")
         }
-    })
+    }
+
+
 }
 
 @Composable
 private fun CartContentLayout(
-    paddingValues: PaddingValues,
     navController: NavController,
     isLoadingState: androidx.compose.runtime.State<Boolean>,
     cartItemsState: androidx.compose.runtime.State<List<CartItemResponse>>,
@@ -206,7 +152,7 @@ private fun CartContentLayout(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
+            .background(Color.White)
     ) {
         item {
             Row(

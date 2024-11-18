@@ -1,4 +1,4 @@
-package com.example.tiendadevinilos.components
+package com.example.tiendadevinilos.ui.components
 
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
