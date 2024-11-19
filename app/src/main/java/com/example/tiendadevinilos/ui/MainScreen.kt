@@ -1,8 +1,6 @@
 package com.example.tiendadevinilos.ui
 
 import LoginPage
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -21,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,7 +42,6 @@ import com.example.tiendadevinilos.ui.genreselection.GenreSelectionPage
 import com.example.tiendadevinilos.ui.genreselection.GenreViewModel
 import com.example.tiendadevinilos.ui.home.HomePage
 import com.example.tiendadevinilos.ui.produc.ProductDetails
-import com.example.tiendadevinilos.viewmodel.ProductsViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -55,7 +51,6 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     userViewModel: UserViewModel,
     biometricAuthenticator: BiometricAuthenticator,
-    genreViewModel: GenreViewModel = viewModel(),
 ) {
 
     //User info
@@ -70,9 +65,6 @@ fun MainScreen(
     )
     var user_id = userData.value.user_id.toString().takeIf { it != "null" } ?: ""
     var isLoadingUser = userViewModel.isLoadingUser.observeAsState(true).value
-
-
-
 
 
     //Navigation

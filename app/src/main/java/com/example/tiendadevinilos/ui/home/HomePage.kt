@@ -78,7 +78,7 @@ fun HomePage(
         }
         Log.d("HomePage", "USERRRR: $user_id")
         Log.d("HomePage", "userGenreList: $userGenreList")
-    } else if(user_id.isBlank() && !loadingUser) {
+    } else if (user_id.isBlank() && !loadingUser) {
         genreViewModel.clearIsLoading()
     }
     Log.d("HomePage", "///////////////////////////")
@@ -92,31 +92,29 @@ fun HomePage(
 
     if (isLoadingProducts || isLoadingGenre || loadingUser) {
         SkeletonContent()
-    }
-       else if (products.isNotEmpty() && userGenreList.isNullOrEmpty() && (user_id == "" || user_id == "null" || user_id.isEmpty())) {
-            Content(
-                products = products,
-                carouselProducts = carouselProducts,
-                navController = navController
-            )
+    } else if (products.isNotEmpty() && userGenreList.isNullOrEmpty() && (user_id == "" || user_id == "null" || user_id.isEmpty())) {
+        Content(
+            products = products,
+            carouselProducts = carouselProducts,
+            navController = navController
+        )
 
+    } else if (user_id != "" && !userGenreList.isNullOrEmpty() && !isLoadingProducts && !isLoadingGenre) {
+        ContentByGenre(
+            genreData = userGenreList,
+            carouselProducts = carouselProducts,
+            navController = navController,
+            products = products
+        )
+
+    } else if (!user_id.isBlank() && userGenreList.isNullOrEmpty() && !isLoadingProducts && !isLoadingGenre) {
+        Toast.makeText(context, "useGenreList: ${userGenreList.toString()}", Toast.LENGTH_SHORT)
+            .show()
+        LaunchedEffect(Unit) {
+            navController.navigate(Routes.genreSelectionPage)
         }
-        else if (user_id != "" && !userGenreList.isNullOrEmpty() && !isLoadingProducts && !isLoadingGenre) {
-            ContentByGenre(
-                genreData = userGenreList,
-                carouselProducts = carouselProducts,
-                navController = navController,
-                products = products
-            )
 
-        }
-        else if (!user_id.isBlank() && userGenreList.isNullOrEmpty() && !isLoadingProducts && !isLoadingGenre) {
-            Toast.makeText(context, "useGenreList: ${userGenreList.toString()}", Toast.LENGTH_SHORT).show()
-            LaunchedEffect(Unit) {
-                navController.navigate(Routes.genreSelectionPage)
-            }
-
-    } else if(!isLoadingProducts && !isLoadingGenre && products.isEmpty() ){
+    } else if (!isLoadingProducts && !isLoadingGenre && products.isEmpty()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

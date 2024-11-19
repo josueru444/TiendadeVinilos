@@ -1,7 +1,5 @@
 package com.example.tiendadevinilos.model
 
-import java.math.BigInteger
-
 data class ProductModel(
     val id_vinyl: String?,
     val name: String,

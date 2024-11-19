@@ -189,7 +189,7 @@ private fun ProfileSection(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "Ver perfil" ?: "",
+                text = "Ver perfil" ,
                 color = colorResource(R.color.product_name),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,

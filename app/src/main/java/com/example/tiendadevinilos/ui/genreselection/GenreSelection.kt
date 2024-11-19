@@ -57,13 +57,13 @@ fun GenreSelectionPage(
         viewModel.getGenreList()
     }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            if (genres.isNotEmpty() && !isLoading) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        if (genres.isNotEmpty() && !isLoading) {
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
