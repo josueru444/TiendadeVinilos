@@ -1,9 +1,7 @@
 package com.example.tiendadevinilos.model
 
-import java.math.BigInteger
-
 data class ProductModel(
-    val id_vinyl: BigInteger,
+    val id_vinyl: String?,
     val name: String,
     val price: Double,
     val quantity: Int,
@@ -15,7 +13,7 @@ data class ProductModel(
 )
 
 data class ProductModelByUser(
-    val id_vinyl: BigInteger?,
+    val id_vinyl: String?,
     val name: String?,
     val price: Double?,
     val img_url: String?,

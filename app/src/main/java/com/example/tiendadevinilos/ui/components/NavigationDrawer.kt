@@ -37,10 +37,12 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
+import com.example.tiendadevinilos.ui.genreselection.GenreViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -53,6 +55,7 @@ fun ModalNavigationDrawerSample(
     userName: String?,
     imgProfile: String?,
     userViewModel: UserViewModel,
+    genreViewModel: GenreViewModel = viewModel(),
     content: @Composable () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -107,10 +110,16 @@ fun ModalNavigationDrawerSample(
                             selectedItem.value = item
                             scope.launch {
                                 when (item.name) {
-                                    "Cerrar Sesión" -> userViewModel.clearUserData()
+                                    "Cerrar Sesión" -> {
+                                        userViewModel.clearUserData()
+                                        genreViewModel.clearUserGenreList()
+                                        navController.navigate(Routes.homePage)
+
+                                    }
+
                                     "Inicio" -> navController.navigate(Routes.homePage)
                                     "Carrito" -> navController.navigate(Routes.cartPage)
-                                   // "Compras" -> navController.navigate("comprasPage")
+                                    // "Compras" -> navController.navigate("comprasPage")
 
                                 }
 
@@ -180,7 +189,7 @@ private fun ProfileSection(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "Ver perfil" ?: "",
+                text = "Ver perfil" ,
                 color = colorResource(R.color.product_name),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,

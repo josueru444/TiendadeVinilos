@@ -1,7 +1,6 @@
 package com.example.tiendadevinilos.ui
 
 import LoginPage
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -20,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,12 +51,7 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     userViewModel: UserViewModel,
     biometricAuthenticator: BiometricAuthenticator,
-    genreViewModel: GenreViewModel = viewModel(),
 ) {
-    //Navigation
-    val navController = rememberNavController()
-    val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route
 
     //User info
     LocalContext.current
@@ -70,29 +63,19 @@ fun MainScreen(
             picture = null
         )
     )
+    var user_id = userData.value.user_id.toString().takeIf { it != "null" } ?: ""
+    var isLoadingUser = userViewModel.isLoadingUser.observeAsState(true).value
 
-    //Genre
-    var user_id = userData.value.user_id.toString() ?: ""
 
-    val genreProducts = genreViewModel.userGenreList.observeAsState(emptyList()).value ?: null
-    val count = genreProducts?.size ?: 0
-    Log.d("Main", "Count: $count")
-    val isLoading = genreViewModel.isLoading.observeAsState(true).value
+    //Navigation
+    val navController = rememberNavController()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
 
-    if (!user_id.equals("null") && !user_id.equals("")) {
-        LaunchedEffect(userData) {
-            genreViewModel.getUserGenre(user_id)
-        }
-    }
 
-    //Drawer
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    val initialRoute = when {
-        user_id.isNotEmpty() && count == 0 && !isLoading -> Routes.genreSelectionPage
-        else -> Routes.homePage
-    }
     ModalNavigationDrawerSample(
         drawerState = drawerState,
         navController = navController,
@@ -141,7 +124,9 @@ fun MainScreen(
                                 )
                             }
                     }, actions = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {
+                            navController.navigate(Routes.genreSelectionPage)
+                        }) {
                             Icon(
                                 Icons.Filled.Search,
                                 contentDescription = "Search",
@@ -190,14 +175,17 @@ fun MainScreen(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-
-                startDestination = initialRoute,
+                startDestination = Routes.homePage,
                 modifier = Modifier.padding(innerPadding),
                 builder = {
                     composable(Routes.homePage) {
                         HomePage(
-                            navController = navController
+                            navController = navController,
+                            user_id = user_id,
+                            loadingUser = isLoadingUser
                         )
+
+
                     }
                     composable(Routes.loginPage) {
                         LoginPage(navController)
@@ -216,7 +204,7 @@ fun MainScreen(
                     }
                     composable(Routes.genreSelectionPage) {
                         GenreSelectionPage(
-                            user_id = userData.value.user_id.toString(),
+                            user_id = user_id,
                             navController = navController
                         )
                     }

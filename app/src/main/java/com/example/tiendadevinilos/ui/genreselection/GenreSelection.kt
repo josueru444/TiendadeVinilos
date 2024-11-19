@@ -48,10 +48,11 @@ fun GenreSelectionPage(
     navController: NavController
 ) {
     val genres = viewModel.genreList.observeAsState(emptyList()).value
+    Log.d("GenreSelectionPage", "genres: $genres")
     val context = LocalContext.current
     val selectedGenres = remember { mutableStateListOf<GenreModel>() }
-    val isLoading = viewModel.isLoading.observeAsState(false).value
-
+    val isLoading = viewModel.isLoading.observeAsState(true).value
+    Log.d("GenreSelectionPage", "isLoading: $isLoading")
     LaunchedEffect(Unit) {
         viewModel.getGenreList()
     }
@@ -62,110 +63,112 @@ fun GenreSelectionPage(
             .background(Color.White),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
-            val rows = genres.chunked(3)
+        if (genres.isNotEmpty() && !isLoading) {
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                val rows = genres.chunked(3)
 
-            item {
-                Text(
-                    text = "Selecciona tus géneros favoritos",
-                    modifier = Modifier.padding(15.dp),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorResource(R.color.product_name)
-                )
-            }
+                item {
+                    Text(
+                        text = "Selecciona tus géneros favoritos",
+                        modifier = Modifier.padding(15.dp),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorResource(R.color.product_name)
+                    )
+                }
 
-            items(rows.size) { rowIndex ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    rows[rowIndex].forEachIndexed { _, genre ->
-                        val isSelected = selectedGenres.contains(genre)
+                items(rows.size) { rowIndex ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        rows[rowIndex].forEachIndexed { _, genre ->
+                            val isSelected = selectedGenres.contains(genre)
 
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(RoundedCornerShape(100.dp))
-                                    .background(Color(0xFF6200EE))
-                                    .clickable {
-                                        if (isSelected) {
-                                            selectedGenres.remove(genre)
-                                        } else {
-                                            selectedGenres.add(genre)
-                                        }
-                                    }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                AsyncImage(
-                                    model = genre.img,
-                                    contentDescription = genre.genre_name,
-                                    contentScale = ContentScale.Crop,
+                                Box(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .then(
+                                        .size(100.dp)
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .background(Color(0xFF6200EE))
+                                        .clickable {
                                             if (isSelected) {
-                                                Modifier.graphicsLayer {
-                                                    alpha = 0.7f
-                                                }
+                                                selectedGenres.remove(genre)
                                             } else {
-                                                Modifier
+                                                selectedGenres.add(genre)
                                             }
-                                        )
+                                        }
+                                ) {
+                                    AsyncImage(
+                                        model = genre.img,
+                                        contentDescription = genre.genre_name,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .then(
+                                                if (isSelected) {
+                                                    Modifier.graphicsLayer {
+                                                        alpha = 0.7f
+                                                    }
+                                                } else {
+                                                    Modifier
+                                                }
+                                            )
+                                    )
+                                }
+                                Text(
+                                    text = genre.genre_name,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = if (isSelected) Color(0xFF6200EE) else Color.Black,
+                                    modifier = Modifier.padding(top = 8.dp)
                                 )
                             }
-                            Text(
-                                text = genre.genre_name,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = if (isSelected) Color(0xFF6200EE) else Color.Black,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
                         }
                     }
                 }
             }
-        }
 
-        Button(
-            onClick = {
-                viewModel.addUserGenres(
-                    userId = user_id,
-                    genres = selectedGenres.toList(),
-                    onComplete = {
-                        selectedGenres.clear()
-                        navController.navigate(Routes.homePage)
-                    },
-                    onError = { error ->
-                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                        Log.e("GenreSelectionPage", error)
-                    }
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            enabled = selectedGenres.isNotEmpty() && !isLoading,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black,
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White
-                )
-            } else {
-                Text("Continuar (${selectedGenres.size}) →")
+            Button(
+                onClick = {
+                    viewModel.addUserGenres(
+                        userId = user_id,
+                        genres = selectedGenres.toList(),
+                        onComplete = {
+                            selectedGenres.clear()
+                            navController.navigate(Routes.homePage)
+                        },
+                        onError = { error ->
+                            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                            Log.e("GenreSelectionPage", error)
+                        }
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                enabled = selectedGenres.isNotEmpty() && !isLoading,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White
+                    )
+                } else {
+                    Text("Continuar (${selectedGenres.size}) →")
+                }
             }
         }
     }
