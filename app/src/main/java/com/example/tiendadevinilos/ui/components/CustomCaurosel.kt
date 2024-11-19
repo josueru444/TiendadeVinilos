@@ -1,5 +1,6 @@
 package com.example.tiendadevinilos.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -35,7 +36,7 @@ fun CustomCarousel(
     productLists: ArrayList<ProductModel>,
     navController: NavController
 ) {
-
+    Log.d("CustomCarousel", "productLists: $productLists")
     Column(
         Modifier
             .size(250.dp)

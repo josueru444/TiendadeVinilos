@@ -33,6 +33,7 @@ class ProductsViewModel : ViewModel() {
     fun getProducts() {
         viewModelScope.launch {
             try {
+                _isLoading.value = true
                 val productList = repository.getProducts()
                 if (productList.isNotEmpty()) {
                     _products.value = productList

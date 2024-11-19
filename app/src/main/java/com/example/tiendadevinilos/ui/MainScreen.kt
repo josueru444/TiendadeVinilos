@@ -1,7 +1,8 @@
 package com.example.tiendadevinilos.ui
 
 import LoginPage
-import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,7 @@ import com.example.tiendadevinilos.ui.genreselection.GenreSelectionPage
 import com.example.tiendadevinilos.ui.genreselection.GenreViewModel
 import com.example.tiendadevinilos.ui.home.HomePage
 import com.example.tiendadevinilos.ui.produc.ProductDetails
+import com.example.tiendadevinilos.viewmodel.ProductsViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -55,10 +57,6 @@ fun MainScreen(
     biometricAuthenticator: BiometricAuthenticator,
     genreViewModel: GenreViewModel = viewModel(),
 ) {
-    //Navigation
-    val navController = rememberNavController()
-    val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route
 
     //User info
     LocalContext.current
@@ -70,29 +68,22 @@ fun MainScreen(
             picture = null
         )
     )
+    var user_id = userData.value.user_id.toString().takeIf { it != "null" } ?: ""
+    var isLoadingUser = userViewModel.isLoadingUser.observeAsState(true).value
 
-    //Genre
-    var user_id = userData.value.user_id.toString() ?: ""
 
-    val genreProducts = genreViewModel.userGenreList.observeAsState(emptyList()).value ?: null
-    val count = genreProducts?.size ?: 0
-    Log.d("Main", "Count: $count")
-    val isLoading = genreViewModel.isLoading.observeAsState(true).value
 
-    if (!user_id.equals("null") && !user_id.equals("")) {
-        LaunchedEffect(userData) {
-            genreViewModel.getUserGenre(user_id)
-        }
-    }
 
-    //Drawer
+
+    //Navigation
+    val navController = rememberNavController()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    val initialRoute = when {
-        user_id.isNotEmpty() && count == 0 && !isLoading -> Routes.genreSelectionPage
-        else -> Routes.homePage
-    }
     ModalNavigationDrawerSample(
         drawerState = drawerState,
         navController = navController,
@@ -141,7 +132,9 @@ fun MainScreen(
                                 )
                             }
                     }, actions = {
-                        IconButton(onClick = {}) {
+                        IconButton(onClick = {
+                            navController.navigate(Routes.genreSelectionPage)
+                        }) {
                             Icon(
                                 Icons.Filled.Search,
                                 contentDescription = "Search",
@@ -190,14 +183,17 @@ fun MainScreen(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-
-                startDestination = initialRoute,
+                startDestination = Routes.homePage,
                 modifier = Modifier.padding(innerPadding),
                 builder = {
                     composable(Routes.homePage) {
                         HomePage(
-                            navController = navController
+                            navController = navController,
+                            user_id = user_id,
+                            loadingUser = isLoadingUser
                         )
+
+
                     }
                     composable(Routes.loginPage) {
                         LoginPage(navController)
@@ -216,7 +212,7 @@ fun MainScreen(
                     }
                     composable(Routes.genreSelectionPage) {
                         GenreSelectionPage(
-                            user_id = userData.value.user_id.toString(),
+                            user_id = user_id,
                             navController = navController
                         )
                     }
