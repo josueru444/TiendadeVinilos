@@ -1,7 +1,11 @@
 package com.example.tiendadevinilos.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.tiendadevinilos.model.UserModel
 import com.example.tiendadevinilos.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.catch
@@ -9,7 +13,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
-class UserViewModel(private val userPreferencesRepository: UserPreferencesRepository) : ViewModel() {
+class UserViewModel(private val userPreferencesRepository: UserPreferencesRepository) :
+    ViewModel() {
 
     private val _isLoadingUser = MutableLiveData<Boolean>(true)
     val isLoadingUser: LiveData<Boolean> = _isLoadingUser
@@ -30,7 +35,13 @@ class UserViewModel(private val userPreferencesRepository: UserPreferencesReposi
         }
         .asLiveData()
 
-    fun saveUserData(user_id: String, email: String, fullName: String, picture: String) {
+    fun saveUserData(
+        user_id: String,
+        email: String,
+        fullName: String,
+        picture: String,
+        token: String
+    ) {
         viewModelScope.launch {
             _isLoadingUser.value = true
             try {
@@ -38,7 +49,8 @@ class UserViewModel(private val userPreferencesRepository: UserPreferencesReposi
                     idUser = user_id,
                     email = email,
                     fullName = fullName,
-                    picture = picture
+                    picture = picture,
+                    token = token
                 )
                 Log.d("UserViewModel", "User data saved successfully")
             } catch (e: Exception) {

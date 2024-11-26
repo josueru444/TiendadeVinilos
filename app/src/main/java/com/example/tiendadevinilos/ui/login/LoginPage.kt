@@ -48,8 +48,9 @@ import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.repository.UserPreferencesRepository
 import com.example.tiendadevinilos.ui.genreselection.GenreViewModel
-import com.example.tiendadevinilos.viewmodel.AddUserViewModel
+import com.example.tiendadevinilos.ui.login.AddUserViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
+import com.google.firebase.messaging.FirebaseMessaging
 import com.stevdzasan.onetap.GoogleUser
 import com.stevdzasan.onetap.OneTapSignInWithGoogle
 import com.stevdzasan.onetap.getUserFromTokenId
@@ -168,6 +169,8 @@ private fun GoogleLogin(
     navController: NavController,
     genreViewModel: GenreViewModel = viewModel()
 ) {
+
+
     val context = LocalContext.current
     val userPreferencesRepository = UserPreferencesRepository(context)
     val viewModelSaveDataStore: UserViewModel =
@@ -185,9 +188,11 @@ private fun GoogleLogin(
             "empty" -> {
                 navController.navigate(Routes.genreSelectionPage)
             }
+
             "data" -> {
-               navController.navigate(Routes.homePage)
+                navController.navigate(Routes.homePage)
             }
+
             else -> {
                 // Caso cuando el mensaje no sea "empty" ni "data"
                 Log.d("Response", "Mensaje inesperado: $responseMessage")
@@ -208,18 +213,30 @@ private fun GoogleLogin(
                 val fullName = it.givenName ?: ""
                 val picture = it.picture ?: ""
 
-                viewModel.addGoogleUser(
-                    userId,
-                    email,
-                    fullName,
-                    picture
-                )
-                viewModelSaveDataStore.saveUserData(
-                    userId,
-                    email,
-                    fullName,
-                    picture
-                )
+                FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val token = task.result
+
+                        viewModel.addGoogleUser(
+                            userId,
+                            email,
+                            fullName,
+                            picture,
+                            token.toString()
+                        )
+                        viewModelSaveDataStore.saveUserData(
+                            userId,
+                            email,
+                            fullName,
+                            picture,
+                            token.toString()
+                            )
+
+                    }
+                }
+
+
+
 
                 genreViewModel.getUserGenre(userId)
 

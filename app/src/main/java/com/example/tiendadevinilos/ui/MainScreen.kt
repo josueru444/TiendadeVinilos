@@ -1,10 +1,12 @@
 package com.example.tiendadevinilos.ui
 
 import LoginPage
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -28,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -37,10 +38,13 @@ import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.biometric.BiometricAuthenticator
 import com.example.tiendadevinilos.model.UserModel
 import com.example.tiendadevinilos.ui.Cart.CartPage
+import com.example.tiendadevinilos.ui.address.addAddress
+import com.example.tiendadevinilos.ui.charts.ChartPage
+import com.example.tiendadevinilos.ui.chatbot.ChatPage
 import com.example.tiendadevinilos.ui.components.ModalNavigationDrawerSample
 import com.example.tiendadevinilos.ui.genreselection.GenreSelectionPage
-import com.example.tiendadevinilos.ui.genreselection.GenreViewModel
 import com.example.tiendadevinilos.ui.home.HomePage
+import com.example.tiendadevinilos.ui.orders.OrderPage
 import com.example.tiendadevinilos.ui.produc.ProductDetails
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
@@ -60,10 +64,14 @@ fun MainScreen(
             user_id = null,
             email = null,
             fullName = null,
-            picture = null
+            picture = null,
+            token = null
         )
     )
     var user_id = userData.value.user_id.toString().takeIf { it != "null" } ?: ""
+    var token = userData.value.token.toString().takeIf { it != "null" } ?: ""
+    Log.d("Token", token)
+
     var isLoadingUser = userViewModel.isLoadingUser.observeAsState(true).value
 
 
@@ -75,6 +83,7 @@ fun MainScreen(
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
 
     ModalNavigationDrawerSample(
         drawerState = drawerState,
@@ -124,15 +133,28 @@ fun MainScreen(
                                 )
                             }
                     }, actions = {
-                        IconButton(onClick = {
-                            navController.navigate(Routes.genreSelectionPage)
-                        }) {
-                            Icon(
-                                Icons.Filled.Search,
-                                contentDescription = "Search",
-                                tint = Color.Black,
-                                modifier = Modifier.size(30.dp)
-                            )
+                        if (currentRoute == Routes.orderPage) {
+                            IconButton(onClick = {
+                                navController.navigate(Routes.chartPage)
+                            }) {
+                                Icon(
+                                    Icons.Filled.BarChart,
+                                    contentDescription = "Chart",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
+                        } else if (currentRoute != Routes.chartPage) {
+                            IconButton(onClick = {
+                                navController.navigate(Routes.genreSelectionPage)
+                            }) {
+                                Icon(
+                                    Icons.Filled.Search,
+                                    contentDescription = "Search",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
                         }
                     })
                 }
@@ -207,6 +229,21 @@ fun MainScreen(
                             user_id = user_id,
                             navController = navController
                         )
+                    }
+                    composable(Routes.orderPage) {
+                        OrderPage(
+                            user_id = user_id
+                        )
+                    }
+                    composable(Routes.chatPage) {
+                        ChatPage()
+                    }
+                    composable(Routes.newAddressPage) {
+                        addAddress(user_id = user_id, navController = navController)
+                    }
+                    composable(Routes.chartPage) {
+
+                        ChartPage(user_id = user_id)
                     }
                 })
         }

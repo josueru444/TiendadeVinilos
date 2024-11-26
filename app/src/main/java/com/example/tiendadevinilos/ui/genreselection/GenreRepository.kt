@@ -13,10 +13,10 @@ class GenreRepository {
         return apiService.getAllGenre()
     }
 
-    suspend fun addUserGenre(genre: AddUserGenreModel): Response<Responses> {
+    suspend fun addUserGenre(genre: AddUserGenreModel): Response<Responses<Any?>> {
 
         return apiService.addUserGenre(
-           genre
+            genre
         )
     }
 

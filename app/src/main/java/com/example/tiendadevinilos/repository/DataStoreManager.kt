@@ -8,7 +8,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.tiendadevinilos.model.UserModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore("user_preferences")
@@ -19,13 +18,21 @@ class UserPreferencesRepository(private val context: Context) {
     private val EMAIL_KEY = stringPreferencesKey("email")
     private val FULL_NAME_KEY = stringPreferencesKey("full_name")
     private val PICTURE_KEY = stringPreferencesKey("picture")
+    private val TOKEN = stringPreferencesKey("token")
 
-    suspend fun saveUserData(idUser: String, email: String, fullName: String, picture: String) {
+    suspend fun saveUserData(
+        idUser: String,
+        email: String,
+        fullName: String,
+        picture: String,
+        token: String
+    ) {
         dataStore.edit { preferences ->
             preferences[ID_USER_KEY] = idUser
             preferences[EMAIL_KEY] = email
             preferences[FULL_NAME_KEY] = fullName
             preferences[PICTURE_KEY] = picture
+            preferences[TOKEN] = token
         }
     }
 
@@ -48,10 +55,10 @@ class UserPreferencesRepository(private val context: Context) {
                 user_id = preferences[ID_USER_KEY] ?: "",
                 email = preferences[EMAIL_KEY] ?: "",
                 fullName = preferences[FULL_NAME_KEY] ?: "",
-                picture = preferences[PICTURE_KEY] ?: ""
+                picture = preferences[PICTURE_KEY] ?: "",
+                token = preferences[TOKEN] ?: ""
             )
         }
-
 
 
 }

@@ -6,4 +6,10 @@ object Routes {
     var productPage = "productDetail/{idProduct}"
     var cartPage = "cartPage"
     var genreSelectionPage = "GenreSelectionPage"
+    var orderPage = "orderPage"
+    var profilePage = "profilePage"
+    var chatPage = "chatPage"
+    var newAddressPage = "newAddressPage"
+    var chartPage ="chartPage"
+
 }

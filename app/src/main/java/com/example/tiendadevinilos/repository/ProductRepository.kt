@@ -11,7 +11,7 @@ class ProductRepository {
     }
 
 
-    suspend fun  getProductById(id: Long): ProductModel {
+    suspend fun getProductById(id: String): ProductModel {
         return apiService.getProductById(id)
     }
 
