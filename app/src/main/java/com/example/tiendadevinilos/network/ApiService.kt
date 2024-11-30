@@ -11,7 +11,6 @@ import com.example.tiendadevinilos.model.ModifyCartRequest
 import com.example.tiendadevinilos.model.OrderApiResponse
 import com.example.tiendadevinilos.model.OrderModel
 import com.example.tiendadevinilos.model.ProductModel
-import com.example.tiendadevinilos.model.StatisticsModel
 import com.example.tiendadevinilos.model.StatisticsResponse
 import com.example.tiendadevinilos.model.UserModel
 import retrofit2.Response

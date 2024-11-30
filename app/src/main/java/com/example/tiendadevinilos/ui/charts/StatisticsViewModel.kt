@@ -6,7 +6,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tiendadevinilos.model.StatisticsModel
-import com.example.tiendadevinilos.network.ApiService
 import com.example.tiendadevinilos.network.RetrofitClient
 import com.example.tiendadevinilos.network.userIdModelRetro
 import kotlinx.coroutines.launch

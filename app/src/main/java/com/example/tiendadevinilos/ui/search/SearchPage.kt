@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,7 +33,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
-import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.model.ProductModel
 import com.example.tiendadevinilos.ui.components.LoadingScreen
 import com.example.tiendadevinilos.viewmodel.ProductsViewModel
