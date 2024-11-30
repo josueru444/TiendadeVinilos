@@ -50,7 +50,6 @@ dependencies {
 
     //icons
     implementation("androidx.compose.material:material-icons-extended:1.7.4")
-
     //Google Login
     implementation("com.github.stevdza-san:OneTapCompose:1.0.13")
 
@@ -96,9 +95,10 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-inappmessaging-display")
 
-    //Charts
-    implementation ("com.github.ehsannarmani:ComposeCharts:latest_version")
+    implementation ("io.github.ehsannarmani:compose-charts:0.0.18")
+
 
 
 

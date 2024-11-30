@@ -2,7 +2,6 @@ package com.example.tiendadevinilos.ui.Cart
 
 import android.annotation.SuppressLint
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -80,8 +79,6 @@ import com.example.tiendadevinilos.model.OrderModel
 import com.example.tiendadevinilos.ui.components.LoadingScreen
 import com.example.tiendadevinilos.ui.orders.OrdersViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
-import com.razzaghi.compose_loading_dots.LoadingWavy
-import com.razzaghi.compose_loading_dots.core.rememberDotsLoadingController
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -355,7 +352,6 @@ fun AddressDropdown(addresses: List<AddressModel>) {
         }
     }
 }
-
 
 
 @Composable

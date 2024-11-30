@@ -1,7 +1,6 @@
 package com.example.tiendadevinilos.ui.produc
 
 import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,11 +48,14 @@ import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.biometric.BiometricAuthenticator
+import com.example.tiendadevinilos.model.OrderItemModel
+import com.example.tiendadevinilos.model.OrderModel
 import com.example.tiendadevinilos.model.ProductModel
 import com.example.tiendadevinilos.model.UserModel
 import com.example.tiendadevinilos.ui.Cart.CartViewModel
 import com.example.tiendadevinilos.ui.components.CounterComponent
 import com.example.tiendadevinilos.ui.components.ExpandableText
+import com.example.tiendadevinilos.ui.orders.OrdersViewModel
 import com.example.tiendadevinilos.viewmodel.CounterViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
 import com.razzaghi.compose_loading_dots.LoadingWavy
@@ -142,7 +144,9 @@ private fun ContentProduct(
     snackbarHostState: SnackbarHostState,
     scope: CoroutineScope,
     navController: NavController,
-    biometricAuthenticator: BiometricAuthenticator
+    biometricAuthenticator: BiometricAuthenticator,
+    orderViewModel: OrdersViewModel = viewModel()
+
 ) {
     //fingerprint
     val activity = LocalContext.current as FragmentActivity
@@ -154,6 +158,30 @@ private fun ContentProduct(
     var counter = counterViewModel.counter
 
     val context = LocalContext.current
+
+    //Orders
+    val isLoading = orderViewModel.isLoading.observeAsState(true).value
+    val responseStatus = orderViewModel.responseStatus.observeAsState(false).value
+    if (!isLoading && responseStatus) {
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = "Comprado correctamente",
+                actionLabel = "Ver Pedido",
+                duration = SnackbarDuration.Short,
+            )
+            when (result) {
+                SnackbarResult.ActionPerformed -> {
+                    navController.popBackStack(navController.graph.startDestinationId, false)
+                    navController.navigate(Routes.orderPage)
+                }
+
+                else -> {
+
+                }
+            }
+        }
+    }
+
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -243,8 +271,19 @@ private fun ContentProduct(
                                 scope.launch {
                                     scaffoldState.bottomSheetState.expand()
                                 }
-                                Toast.makeText(context, "Huella Escaneada", Toast.LENGTH_SHORT)
-                                    .show()
+                                orderViewModel.addNewOrder(
+                                    OrderModel(
+                                        user_id = user_id.toString(),
+                                        total = (counter.value * product?.price!!),
+                                        items = listOf(
+                                            OrderItemModel(
+                                                id_vinyl = id,
+                                                quantity = counter.value,
+                                                price = product.price
+                                            )
+                                        )
+                                    )
+                                )
                             },
                             onError = { _, errorString ->
                                 message = errorString.toString()
@@ -312,9 +351,37 @@ private fun ContentProduct(
                     )
                 }
                 Spacer(modifier = Modifier.size(5.dp))
-
-
             }
         }
     }
 }
+
+@Composable
+fun createNewOrder(
+    user_id: String,
+    id_vinyl: String,
+    quantity: Int,
+    price: Double,
+    orderViewModel: OrdersViewModel = viewModel()
+) {
+    var isLoading = orderViewModel.isLoading.observeAsState(true).value
+    var responseStatus = orderViewModel.responseStatus.observeAsState(false).value
+    LaunchedEffect(user_id) {
+        orderViewModel.addNewOrder(
+            OrderModel(
+                user_id = user_id,
+                total = (quantity * price),
+                items = listOf(
+                    OrderItemModel(
+                        id_vinyl = id_vinyl,
+                        quantity = quantity,
+                        price = price
+                    )
+                )
+            )
+
+        )
+    }
+}
+
+

@@ -10,8 +10,9 @@ import com.example.tiendadevinilos.model.GetItemsCartList
 import com.example.tiendadevinilos.model.ModifyCartRequest
 import com.example.tiendadevinilos.model.OrderApiResponse
 import com.example.tiendadevinilos.model.OrderModel
-import com.example.tiendadevinilos.model.OrderResponse
 import com.example.tiendadevinilos.model.ProductModel
+import com.example.tiendadevinilos.model.StatisticsModel
+import com.example.tiendadevinilos.model.StatisticsResponse
 import com.example.tiendadevinilos.model.UserModel
 import retrofit2.Response
 import retrofit2.http.Body
@@ -27,7 +28,7 @@ data class Responses<T>(
 
 data class userIdModelRetro(
     val user_id: String
-    )
+)
 
 interface ApiService {
     //Products////////////////////////////////
@@ -96,5 +97,10 @@ interface ApiService {
     suspend fun getAllOrders(
         @Body userIdModelRetro: userIdModelRetro
     ): Response<OrderApiResponse>
+
+    @POST("api/get-statistics")
+    suspend fun getStatistics(
+        @Body userIdModelRetro: userIdModelRetro
+    ): Response<StatisticsResponse>
 
 }

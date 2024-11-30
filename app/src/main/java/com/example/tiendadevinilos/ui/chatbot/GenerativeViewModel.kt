@@ -40,9 +40,11 @@ class GenerativeViewModel : ViewModel() {
             }
         }
     }
+
     fun resetResponse() {
         _response.value = ""
     }
+
     fun resetError() {
         _error.value = ""
     }

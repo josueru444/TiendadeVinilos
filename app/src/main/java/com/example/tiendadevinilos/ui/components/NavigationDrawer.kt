@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.DrawerState
@@ -70,7 +69,7 @@ fun ModalNavigationDrawerSample(
         DrawerItem("Contáctanos", Icons.Filled.Email),
         DrawerItem("Cerrar Sesión", Icons.Filled.Logout),
 
-    )
+        )
 
     val selectedItem = remember { mutableStateOf(drawerItems[0]) }
 
@@ -120,11 +119,10 @@ fun ModalNavigationDrawerSample(
                                         navController.navigate(Routes.homePage)
 
                                     }
-
                                     "Inicio" -> navController.navigate(Routes.homePage)
                                     "Carrito" -> navController.navigate(Routes.cartPage)
                                     "Compras" -> navController.navigate(Routes.orderPage)
-                                    "Contáctanos"->navController.navigate(Routes.chatPage)
+                                    "Contáctanos" -> navController.navigate(Routes.chatPage)
                                 }
 
 
@@ -159,7 +157,11 @@ private fun ProfileSection(
                     scope.launch {
                         drawerState.close()
                     }
-                    navController.navigate("loginPage")
+                    if (userName == "") {
+                        navController.navigate(Routes.loginPage)
+                    } else {
+                        navController.navigate(Routes.homePage)
+                    }
                 }
             ),
         verticalAlignment = Alignment.CenterVertically

@@ -10,6 +10,8 @@ object Routes {
     var profilePage = "profilePage"
     var chatPage = "chatPage"
     var newAddressPage = "newAddressPage"
-    var chartPage ="chartPage"
+    var chartPage = "chartPage"
+    var searchPage = "searchPage"
+
 
 }

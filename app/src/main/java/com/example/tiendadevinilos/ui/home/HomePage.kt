@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,7 +94,7 @@ fun HomePage(
             genreData = userGenreList,
             carouselProducts = carouselProducts,
             navController = navController,
-            products = products
+            products = products.take(20)
         )
 
     } else if (!user_id.isBlank() && userGenreList.isNullOrEmpty() && !isLoadingProducts && !isLoadingGenre && products.isNotEmpty()) {
@@ -164,7 +165,9 @@ fun Content(
                 color = colorResource(R.color.product_name)
             )
         }
-        items(products.size) { index ->
+        val limitedProducts = products.take(20)
+
+        items(limitedProducts.size ) { index ->
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -188,8 +191,9 @@ fun Content(
                         border = BorderStroke(1.dp, Color.Black),
                     ) {
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
+
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             AsyncImage(
                                 modifier = Modifier.size(155.dp),
@@ -201,8 +205,9 @@ fun Content(
                                 modifier = Modifier
                                     .padding(horizontal = 8.dp)
                                     .fillMaxWidth(),
-                                text = products[index].name,
+                                text = products[index].name.toString(),
                                 fontSize = 20.sp,
+                                textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -309,6 +314,7 @@ fun ContentByGenre(
                                                     .fillMaxWidth(),
                                                 text = product?.name ?: "Sin Nombre",
                                                 fontSize = 20.sp,
+                                                textAlign = TextAlign.Center,
                                                 fontWeight = FontWeight.Medium,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,

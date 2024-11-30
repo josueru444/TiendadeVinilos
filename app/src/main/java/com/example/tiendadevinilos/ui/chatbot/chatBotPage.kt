@@ -86,7 +86,7 @@ fun ChatPage(generativeViewModel: GenerativeViewModel = viewModel()) {
             OutlinedTextField(
                 value = currentMessage,
                 onValueChange = { currentMessage = it },
-                label = { Text("Escribe un mensaje...",color = Color.Black) },
+                label = { Text("Escribe un mensaje...", color = Color.Black) },
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Black,

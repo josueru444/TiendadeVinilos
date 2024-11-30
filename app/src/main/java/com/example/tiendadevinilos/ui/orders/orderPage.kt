@@ -7,22 +7,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -55,94 +53,106 @@ fun OrderPage(
     when {
         isLoading -> LoadingScreen(isLoading = isLoading)
         !isLoading && !orders.isEmpty() -> OrderContentLayout(orders = orders)
+        !isLoading && orders.isEmpty() -> OrderEmptyLayout()
+    }
+}
+@Composable
+fun OrderEmptyLayout() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "No tienes historial de compras", color = Color.Black)
     }
 }
 
 @Composable
 fun OrderContentLayout(orders: List<OrderResponse>) {
 
-    LazyColumn(
-        modifier = Modifier
-            .background(Color.White)
+    if (orders.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .background(Color.White)
 
-    ) {
-        items(orders.size) { index ->
-            OutlinedCard(
-                colors = CardDefaults.cardColors(
-                    containerColor = colorResource(R.color.cart_item_background),
-                    contentColor = colorResource(R.color.product_name)
-                ),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, Color.Black),
+        ) {
+            items(orders.size) { index ->
+                OutlinedCard(
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(R.color.cart_item_background),
+                        contentColor = colorResource(R.color.product_name)
+                    ),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color.Black),
 
 
-                ) {
-                Column(
-                ) {
-
-                    Row(
                     ) {
-                        AsyncImage(
-                            model = orders[index].img_url,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .size(80.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                        )
-                        Column(
-                            modifier = Modifier.padding(8.dp)
+                    Column(
+                    ) {
+
+                        Row(
                         ) {
-                            Text(
-                                text = orders[index].name,
-                                color = colorResource(R.color.product_name),
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 18.sp,
-                                maxLines = 1
+                            AsyncImage(
+                                model = orders[index].img_url,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .size(80.dp)
+                                    .clip(RoundedCornerShape(8.dp))
                             )
-                            Text(text = orders[index].price.toString())
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                            Column(
+                                modifier = Modifier.padding(8.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .background(
-                                            Color.Gray,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
+                                Text(
+                                    text = orders[index].name,
+                                    color = colorResource(R.color.product_name),
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 18.sp,
+                                    maxLines = 1
+                                )
+                                Text(text = orders[index].price.toString())
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                Color.Gray,
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                    ) {
+                                        Text(
+                                            text =
+                                            when (orders[index].status) {
+                                                "pending" -> "   Pendiente   "
+                                                "paid" -> "   Pagado   "
+                                                "to_ship" -> "   Por enviar   "
+                                                "shipped" -> "   Enviado   "
+                                                "delivered" -> "   Entregado   "
+                                                "cancelled" -> "   Cancelado   "
+                                                else -> {
+                                                    "Pendiente"
+                                                }
+                                            },
+                                            color = Color.White,
+                                            fontSize = 12.sp
+                                        )
+                                    }
                                     Text(
-                                        text =
-                                        when (orders[index].status) {
-                                            "pending" -> "   Pendiente   "
-                                            "paid" -> "   Pagado   "
-                                            "to_ship" -> "   Por enviar   "
-                                            "shipped" -> "   Enviado   "
-                                            "delivered" -> "   Entregado   "
-                                            "cancelled" -> "   Cancelado   "
-                                            else -> {
-                                                "Pendiente"
-                                            }
-                                        },
-                                        color = Color.White,
-                                        fontSize = 12.sp
+                                        text = "Orden: ${orders[index].id.toString()}",
                                     )
                                 }
-                                Text(
-                                    text = "Orden: ${orders[index].id.toString()}",
-                                )
                             }
                         }
+
                     }
-
                 }
+
             }
-
         }
-
     }
 }

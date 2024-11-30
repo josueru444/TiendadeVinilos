@@ -58,7 +58,10 @@ import com.stevdzasan.onetap.rememberOneTapSignInState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginPage(navController: NavController) {
+fun LoginPage(navController: NavController, user_id: String, loadingUser: Boolean) {
+
+
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var visible by remember { mutableStateOf(false) }
@@ -230,7 +233,7 @@ private fun GoogleLogin(
                             fullName,
                             picture,
                             token.toString()
-                            )
+                        )
 
                     }
                 }
