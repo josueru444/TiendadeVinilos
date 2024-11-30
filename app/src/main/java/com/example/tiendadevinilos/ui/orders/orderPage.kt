@@ -1,4 +1,4 @@
-package com.example.tiendadevinilos.ui.search
+package com.example.tiendadevinilos.ui.orders
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
@@ -15,9 +15,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -26,64 +26,57 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
-import com.example.tiendadevinilos.model.ProductModel
+import com.example.tiendadevinilos.model.OrderResponse
 import com.example.tiendadevinilos.ui.components.LoadingScreen
-import com.example.tiendadevinilos.viewmodel.ProductsViewModel
 
 @Composable
-fun SearchPage(
-    search: String,
-    clicked: Boolean,
-    navController: NavController,
-    productsViewModel: ProductsViewModel = viewModel()
+fun OrderPage(
+    orderViewModel: OrdersViewModel = viewModel(),
+    user_id: String
 ) {
-    val isLoading by productsViewModel.isLoading.observeAsState(true)
-    val products by productsViewModel.products.observeAsState(emptyList())
-    val errorMessage by productsViewModel.error.observeAsState()
+    val isLoading by orderViewModel.isLoading.observeAsState(true)
+    val response by orderViewModel.responseStatus.observeAsState(false)
+    val orders by orderViewModel.orders.observeAsState(emptyList())
 
-    Scaffold(
-        topBar = {
-        }
-    )
-    { innerPadding ->
-        when {
-            isLoading -> LoadingScreen(isLoading = isLoading)
-            errorMessage?.isNotBlank() == true -> Text(errorMessage ?: "")
-            products.isNotEmpty() -> SearchContent(
-                modifier = Modifier.padding(innerPadding),
-                clicked = clicked,
-                products = products,
-                search = search,
-                navController = navController
-            )
 
-        }
+    LaunchedEffect(user_id) {
+        orderViewModel.getOrders(user_id)
+    }
+
+
+    Log.d("orders", "$isLoading")
+    when {
+        isLoading -> LoadingScreen(isLoading = isLoading)
+        !isLoading && !orders.isEmpty() -> OrderContentLayout(orders = orders)
+        !isLoading && orders.isEmpty() -> OrderEmptyLayout()
+    }
+}
+@Composable
+fun OrderEmptyLayout() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "No tienes historial de compras", color = Color.Black)
     }
 }
 
 @Composable
-fun SearchContent(
-    modifier: Modifier,
-    clicked: Boolean,
-    products: List<ProductModel>,
-    search: String,
-    navController: NavController
-) {
-    Log.d("product", "$clicked")
-    val searchQuery = search
+fun OrderContentLayout(orders: List<OrderResponse>) {
 
-    val results = products.filter { it.name.contains(searchQuery, ignoreCase = true) }.take(20)
-    Log.d("results",results.toString())
-    LazyColumn(modifier = modifier) {
-        if (clicked) {
-            items(results.size) { product ->
+    if (orders.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .background(Color.White)
+
+        ) {
+            items(orders.size) { index ->
                 OutlinedCard(
                     colors = CardDefaults.cardColors(
                         containerColor = colorResource(R.color.cart_item_background),
@@ -94,38 +87,37 @@ fun SearchContent(
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, Color.Black),
-                    onClick = {
-                        navController.navigate("productDetail/${results[product].id_vinyl}")
-                    }
-                ) {
+
+
+                    ) {
                     Column(
                     ) {
+
                         Row(
                         ) {
                             AsyncImage(
-                                model = results[product].img_url,
+                                model = orders[index].img_url,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .padding(8.dp)
-                                    .size(50.dp)
+                                    .size(80.dp)
                                     .clip(RoundedCornerShape(8.dp))
                             )
                             Column(
                                 modifier = Modifier.padding(8.dp)
                             ) {
                                 Text(
-                                    text = results[product].name,
+                                    text = orders[index].name,
                                     color = colorResource(R.color.product_name),
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 18.sp,
                                     maxLines = 1
                                 )
+                                Text(text = orders[index].price.toString())
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                )
-                                {
-                                    Text(text = results[product].price.toString())
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
                                     Box(
                                         modifier = Modifier
                                             .background(
@@ -134,36 +126,33 @@ fun SearchContent(
                                             )
                                     ) {
                                         Text(
-                                            text = "  ${results[product].genre_name.toString()}  ",
+                                            text =
+                                            when (orders[index].status) {
+                                                "pending" -> "   Pendiente   "
+                                                "paid" -> "   Pagado   "
+                                                "to_ship" -> "   Por enviar   "
+                                                "shipped" -> "   Enviado   "
+                                                "delivered" -> "   Entregado   "
+                                                "cancelled" -> "   Cancelado   "
+                                                else -> {
+                                                    "Pendiente"
+                                                }
+                                            },
                                             color = Color.White,
                                             fontSize = 12.sp
                                         )
                                     }
+                                    Text(
+                                        text = "Orden: ${orders[index].id.toString()}",
+                                    )
                                 }
-
                             }
                         }
 
                     }
                 }
-            }
-        }
-        if (clicked && results.isNullOrEmpty()) {
-            item {
-               Column(
-                   modifier = Modifier.fillMaxSize(),
-                   horizontalAlignment = Alignment.CenterHorizontally
-               ){
-                   Text(
-                       "No encontró: $search",
-                       color = Color.Black,
-                       fontSize = 18.sp,
-                       modifier = Modifier.fillMaxWidth(),
-                       textAlign = TextAlign.Center
-                   )
-               }
-            }
-        }
 
+            }
+        }
     }
 }

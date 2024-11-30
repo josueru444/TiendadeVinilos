@@ -1,9 +1,10 @@
 package com.example.tiendadevinilos.ui.produc
 
-import android.widget.Toast
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -43,13 +48,18 @@ import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
 import com.example.tiendadevinilos.Routes
 import com.example.tiendadevinilos.biometric.BiometricAuthenticator
+import com.example.tiendadevinilos.model.OrderItemModel
+import com.example.tiendadevinilos.model.OrderModel
 import com.example.tiendadevinilos.model.ProductModel
 import com.example.tiendadevinilos.model.UserModel
+import com.example.tiendadevinilos.ui.Cart.CartViewModel
 import com.example.tiendadevinilos.ui.components.CounterComponent
 import com.example.tiendadevinilos.ui.components.ExpandableText
-import com.example.tiendadevinilos.viewmodel.CartViewModel
+import com.example.tiendadevinilos.ui.orders.OrdersViewModel
 import com.example.tiendadevinilos.viewmodel.CounterViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
+import com.razzaghi.compose_loading_dots.LoadingWavy
+import com.razzaghi.compose_loading_dots.core.rememberDotsLoadingController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -63,13 +73,15 @@ fun ProductDetails(
 ) {
 
     val viewModel: ProductDetailsViewModel = viewModel()
+    val isLoading = viewModel.isLoading.observeAsState(true).value
     val product = viewModel.product.observeAsState()
     val userData = userViewModel.userData.observeAsState(
         initial = UserModel(
             user_id = null,
             email = null,
             fullName = null,
-            picture = null
+            picture = null,
+            token = null
         )
     )
 
@@ -77,25 +89,51 @@ fun ProductDetails(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(productId) {
-        viewModel.getProductById(productId.toLong())
+        viewModel.getProductById(productId)
     }
 
+    val rememberDotsLoadingWavyController = rememberDotsLoadingController()
 
-
-    ContentProduct(
-        modifier = Modifier,
-        id = productId,
-        product = product.value,
-        user_id = userData.value.user_id ?: null,
-        navController = navController,
-        snackbarHostState = snackbarHostState,
-        scope = scope,
-        biometricAuthenticator = biometricAuthenticator
-    )
-
-
+    if (isLoading) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            LoadingWavy(
+                controller = rememberDotsLoadingWavyController,
+                dotsColor = Color.Black,
+                modifier = Modifier
+            )
+            Text(
+                text = "Cargando...",
+                color = Color.Black,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    } else if (product.value != null && !isLoading) {
+        ContentProduct(
+            modifier = Modifier,
+            id = productId,
+            product = product.value,
+            user_id = userData.value.user_id ?: null,
+            navController = navController,
+            snackbarHostState = snackbarHostState,
+            scope = scope,
+            biometricAuthenticator = biometricAuthenticator
+        )
+    } else {
+        Text(
+            text = "Error al cargar los datos",
+            color = Color.Black,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
 }
 
+@SuppressLint("CoroutineCreationDuringComposition", "UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContentProduct(
@@ -106,7 +144,9 @@ private fun ContentProduct(
     snackbarHostState: SnackbarHostState,
     scope: CoroutineScope,
     navController: NavController,
-    biometricAuthenticator: BiometricAuthenticator
+    biometricAuthenticator: BiometricAuthenticator,
+    orderViewModel: OrdersViewModel = viewModel()
+
 ) {
     //fingerprint
     val activity = LocalContext.current as FragmentActivity
@@ -119,146 +159,229 @@ private fun ContentProduct(
 
     val context = LocalContext.current
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+    //Orders
+    val isLoading = orderViewModel.isLoading.observeAsState(true).value
+    val responseStatus = orderViewModel.responseStatus.observeAsState(false).value
+    if (!isLoading && responseStatus) {
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = "Comprado correctamente",
+                actionLabel = "Ver Pedido",
+                duration = SnackbarDuration.Short,
+            )
+            when (result) {
+                SnackbarResult.ActionPerformed -> {
+                    navController.popBackStack(navController.graph.startDestinationId, false)
+                    navController.navigate(Routes.orderPage)
+                }
+
+                else -> {
+
+                }
+            }
+        }
+    }
+
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) {
-        item {
-            AsyncImage(
-                model = product?.img_url,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(343.dp)
-                    .clip(shape = RoundedCornerShape(15.dp))
-            )
-            Text(
-                text = "${product?.name}",
-                color = Color.Black,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                fontSize = 25.sp,
-                modifier = Modifier
-                    .padding(horizontal = 25.dp)
-                    .padding(top = 10.dp)
-            )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 25.dp, vertical = 10.dp)
-
-            ) {
-                Text(
-                    text = "$${product?.price}",
-                    color = colorResource(R.color.product_price),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.fillMaxWidth()
-
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(0.dp)
+                .background(Color.White),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            item {
+                AsyncImage(
+                    model = product?.img_url,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(343.dp)
+                        .clip(shape = RoundedCornerShape(15.dp))
                 )
-            }
+                Text(
+                    text = "${product?.name}",
+                    color = Color.Black,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 25.sp,
+                    modifier = Modifier
+                        .padding(horizontal = 25.dp)
+                        .padding(top = 10.dp)
+                )
 
-            ExpandableText(
-                product?.description.toString() ?: "No hay Descripción",
-                minimizedMaxLines = 6,
-                modifier = Modifier
-                    .padding(horizontal = 20.dp)
-                    .heightIn(min = 154.dp)
-            )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 25.dp, vertical = 10.dp)
 
-            CounterComponent(
-                maxCount = product?.quantity ?: 1,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 25.dp)
-                    .height(41.dp)
-            )
+                ) {
+                    Text(
+                        text = "$${product?.price}",
+                        color = colorResource(R.color.product_price),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier.fillMaxWidth()
 
-            Spacer(modifier = Modifier.size(10.dp))
-
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black, contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(41.dp)
-                    .padding(horizontal = 25.dp),
-                shape = RoundedCornerShape(10.dp),
-                onClick = {
-                    biometricAuthenticator.promptBiometricAuth(
-                        title = "Verify your identity",
-                        subTitle = "Use your fingerprint",
-                        negativeButtonText = "Cancel",
-                        fragmentActivity = activity,
-                        onSuccess = {
-                            message = "Success"
-                            scope.launch {
-                                scaffoldState.bottomSheetState.expand()
-                            }
-                            Toast.makeText(context, "Huella Escaneada", Toast.LENGTH_SHORT).show()
-                        },
-                        onError = { _, errorString ->
-                            message = errorString.toString()
-                        },
-                        onFailed = {
-                            message = "Verification error"
-                        }
                     )
+                }
 
-                },
+                ExpandableText(
+                    product?.description.toString() ?: "No hay Descripción",
+                    minimizedMaxLines = 6,
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp)
+                        .heightIn(min = 154.dp)
+                )
 
-                ) {
-                Text(text = "Comprar ahora", fontSize = 15.sp, fontWeight = FontWeight.Medium)
-            }
+                CounterComponent(
+                    maxCount = product?.quantity ?: 1,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 25.dp)
+                        .height(41.dp)
+                )
 
-            Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(10.dp))
 
-            Button(
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.background_descrease),
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(41.dp)
-                    .padding(horizontal = 25.dp),
-                shape = RoundedCornerShape(10.dp),
-
-                onClick = {
-                    if (user_id != "") {
-                        cartViewModel.addToCart(
-                            user_id = user_id.toString(),
-                            id_vinyl = id,
-                            quantity = counter.value
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Black, contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(41.dp)
+                        .padding(horizontal = 25.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    onClick = {
+                        biometricAuthenticator.promptBiometricAuth(
+                            title = "Verify your identity",
+                            subTitle = "Use your fingerprint",
+                            negativeButtonText = "Cancel",
+                            fragmentActivity = activity,
+                            onSuccess = {
+                                message = "Success"
+                                scope.launch {
+                                    scaffoldState.bottomSheetState.expand()
+                                }
+                                orderViewModel.addNewOrder(
+                                    OrderModel(
+                                        user_id = user_id.toString(),
+                                        total = (counter.value * product?.price!!),
+                                        items = listOf(
+                                            OrderItemModel(
+                                                id_vinyl = id,
+                                                quantity = counter.value,
+                                                price = product.price
+                                            )
+                                        )
+                                    )
+                                )
+                            },
+                            onError = { _, errorString ->
+                                message = errorString.toString()
+                            },
+                            onFailed = {
+                                message = "Verification error"
+                            }
                         )
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = "Agregado al carrito",
-                                actionLabel = "Aceptar"
+
+                    },
+
+                    ) {
+                    Text(text = "Comprar ahora", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                }
+
+                Spacer(modifier = Modifier.size(10.dp))
+
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.background_descrease),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(41.dp)
+                        .padding(horizontal = 25.dp),
+                    shape = RoundedCornerShape(10.dp),
+
+                    onClick = {
+                        if (user_id != "") {
+                            cartViewModel.addToCart(
+                                user_id = user_id.toString(),
+                                id_vinyl = id,
+                                quantity = counter.value
                             )
+                            scope.launch {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = "Agregado al carrito",
+                                    actionLabel = "Ver carrito",
+                                    duration = SnackbarDuration.Short,
+                                )
+                                when (result) {
+                                    SnackbarResult.ActionPerformed -> {
+                                        navController.navigate(Routes.cartPage)
+                                    }
+
+                                    else -> {
+
+                                    }
+                                }
+                            }
+
+                            counter.value = 1
+
+                        } else {
+                            navController.navigate(Routes.loginPage)
                         }
+                    },
 
-                        counter.value = 1
-
-                    } else {
-                        navController.navigate(Routes.loginPage)
-                    }
-                },
-
-                ) {
-                Text(text = "Agregar al carrito ", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                    ) {
+                    Text(
+                        text = "Agregar al carrito ",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Spacer(modifier = Modifier.size(5.dp))
             }
-            Spacer(modifier = Modifier.size(5.dp))
-
-
         }
     }
 }
+
+@Composable
+fun createNewOrder(
+    user_id: String,
+    id_vinyl: String,
+    quantity: Int,
+    price: Double,
+    orderViewModel: OrdersViewModel = viewModel()
+) {
+    var isLoading = orderViewModel.isLoading.observeAsState(true).value
+    var responseStatus = orderViewModel.responseStatus.observeAsState(false).value
+    LaunchedEffect(user_id) {
+        orderViewModel.addNewOrder(
+            OrderModel(
+                user_id = user_id,
+                total = (quantity * price),
+                items = listOf(
+                    OrderItemModel(
+                        id_vinyl = id_vinyl,
+                        quantity = quantity,
+                        price = price
+                    )
+                )
+            )
+
+        )
+    }
+}
+
 

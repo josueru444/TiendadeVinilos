@@ -1,8 +1,10 @@
 package com.example.tiendadevinilos.ui.Cart
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,35 +17,53 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,102 +71,333 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.tiendadevinilos.R
+import com.example.tiendadevinilos.Routes
+import com.example.tiendadevinilos.model.AddressModel
 import com.example.tiendadevinilos.model.CartItemResponse
-import com.example.tiendadevinilos.viewmodel.CartViewModel
+import com.example.tiendadevinilos.model.OrderItemModel
+import com.example.tiendadevinilos.model.OrderModel
+import com.example.tiendadevinilos.ui.components.LoadingScreen
+import com.example.tiendadevinilos.ui.orders.OrdersViewModel
 import com.example.tiendadevinilos.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartPage(navController: NavController, userViewModel: UserViewModel) {
     val user = userViewModel.userData.value
-
     val cartViewModel: CartViewModel = viewModel()
-    val isLoadingState = cartViewModel.isLoading.observeAsState(false)
-    val errorState = cartViewModel.errorMessage.observeAsState()
-    val cartItemsState = cartViewModel.cartItems.observeAsState(emptyList())
+
+    // Estados observados
+    val isLoading by cartViewModel.isLoading.observeAsState(false)
+    val errorMessage by cartViewModel.errorMessage.observeAsState()
+    val cartItems by cartViewModel.cartItems.observeAsState(emptyList())
+    val addresses by cartViewModel.addresses.observeAsState()
 
 
-    Log.d("CartPage", "errorState: $errorState")
+    // Subtotal calculado
+    val subtotal = remember(cartItems) {
+        cartItems.sumOf {
+            BigDecimal(it.price.toString()) * BigDecimal(it.quantity)
+        }.setScale(2, RoundingMode.HALF_UP)
+    }
 
-    val subtotal = cartItemsState.value.sumOf {
-        BigDecimal(it.price.toString()).multiply(BigDecimal(it.quantity))
-    }.setScale(2, RoundingMode.HALF_UP)
+    // Estado para el modal
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(user) {
         user?.user_id?.let { userId ->
-            cartViewModel.getCartItems(user_id = userId.toString())
+            cartViewModel.getCartItems(userId.toString())
         }
     }
 
-    if (isLoadingState.value) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .background(Color.White),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator(color = Color.Black)
-            Text("Obteniendo productos...")
+    Scaffold(
+        bottomBar = {
+            BottomBar(
+                subtotal = subtotal.toString(),
+                onProceedToPayment = { showBottomSheet = true }
+            )
         }
-    } else if (cartItemsState.value.isNotEmpty()) {
-        CartContentLayout(
-            navController = navController,
-            isLoadingState = isLoadingState,
-            cartItemsState = cartItemsState,
-            cartViewModel = cartViewModel
-        )
-    } else if (errorState.value != null) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .background(Color.White),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("No se han podido obtener los productos")
-            Button(
-                onClick = {
-                    navController.popBackStack()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Black,
-                    contentColor = Color.White
-                )
+    ) {
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState
             ) {
-                Text(
-                    "Volver al inicio",
-                    color = Color.White,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
+                ModalContent(
+                    cartItems = cartItems,
+                    addresses = addresses,
+                    onClose = {
+                        scope.launch {
+                            sheetState.hide()
+                            showBottomSheet = false
+                        }
+                    },
+                    navController = navController,
+                    subtotal = subtotal.toString(),
+                    user_id = user?.user_id ?: ""
                 )
             }
         }
-    } else {
-        Column(
-            Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("No hay productos en el carrito")
+        val cartItemsState = cartViewModel.cartItems.observeAsState(emptyList())
+
+        when {
+            isLoading -> LoadingScreen(isLoading = isLoading)
+            errorMessage?.isNotBlank() == true -> EmptyCartScreen()
+
+
+            cartItems.isEmpty() -> EmptyCartScreen()
+            else -> CartContentLayout(
+                user_id = user?.user_id ?: "",
+                cartItems = cartItems,
+                navController = navController,
+                cartItemsState = cartItemsState,
+            )
         }
     }
-
-
 }
 
 @Composable
-private fun CartContentLayout(
+fun ModalContent(
+    user_id: String,
+    cartItems: List<CartItemResponse>,
+    addresses: List<AddressModel>?,
+    onClose: () -> Unit,
     navController: NavController,
-    isLoadingState: androidx.compose.runtime.State<Boolean>,
-    cartItemsState: androidx.compose.runtime.State<List<CartItemResponse>>,
-    cartViewModel: CartViewModel
+    subtotal: String,
+    orderViewModel: OrdersViewModel = viewModel()
 
 ) {
-    val cartItems = cartViewModel.cartItems.observeAsState(emptyList()).value
+    val context = LocalContext.current
+    val response by orderViewModel.responseStatus.observeAsState(false)
+    val isLoading by orderViewModel.isLoading.observeAsState(true)
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Finalizar pedido",
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            items(cartItems.size) { cartItem ->
+                AsyncImage(
+                    modifier = Modifier
+                        .size(65.dp)
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(5.dp)),
+                    model = cartItems[cartItem].img_url,
+                    contentDescription = "Product Image"
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Dirección de envío:",
+            fontWeight = FontWeight.Medium,
+            fontSize = 15.sp,
+            color = colorResource(R.color.product_name),
+            textAlign = TextAlign.Start
+        )
+        if (!addresses.isNullOrEmpty()) {
+            addresses?.let {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.LocationOn, "", tint = colorResource(R.color.product_name))
+
+                    AddressDropdown(addresses = it)
+
+                    IconButton(
+                        onClick = {
+                            onClose()
+                            navController.navigate(Routes.newAddressPage)
+
+                        }
+                    ) {
+                        Icon(Icons.Filled.Add, "", tint = colorResource(R.color.product_name))
+                    }
+                }
+
+            }
+        } else {
+            Text(text = "Agregar dirección",
+                color = Color.Black,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable {
+                    onClose()
+                    navController.navigate(Routes.newAddressPage)
+                })
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Total: ",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black
+            )
+            Text(
+                "$${subtotal}",
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Medium,
+                color = colorResource(R.color.product_price)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.Black,
+                contentColor = Color.White
+            ),
+            enabled = !addresses.isNullOrEmpty(),
+            onClick = {
+                onClose()
+                orderViewModel.addNewOrder(
+                    OrderModel(
+                        user_id = user_id,
+                        total = subtotal.toDouble(),
+                        items = cartItems.map {
+                            OrderItemModel(
+                                id_vinyl = it.id_vinyl,
+                                quantity = it.quantity,
+                                price = it.price.toDouble(),
+                            )
+                        }
+                    )
+                )
+                navController.popBackStack(navController.graph.startDestinationId, false)
+                navController.navigate(Routes.orderPage)
+            }
+        ) {
+            Text(
+                "Confirmar pedido",
+                color = Color.White
+            )
+        }
+
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun AddressDropdown(addresses: List<AddressModel>) {
+    var isExpanded by remember { mutableStateOf(false) }
+    var selectedText by remember {
+        mutableStateOf(
+            "${addresses.firstOrNull()?.city} " +
+                    "\n${addresses.firstOrNull()?.street ?: ""}"
+        )
+    }
+    var selectedId by remember { mutableStateOf(addresses.firstOrNull()?.id) }
+    Log.d("idaaa", "$selectedId")
+    ExposedDropdownMenuBox(
+        expanded = isExpanded,
+        onExpandedChange = { isExpanded = !isExpanded }
+    ) {
+        TextField(
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                containerColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
+                focusedTextColor = colorResource(R.color.text_color_input),
+                unfocusedTextColor = colorResource(R.color.text_color_input_label),
+            ),
+            value = selectedText,
+            onValueChange = { selectedText = it },
+            readOnly = true,
+            textStyle = TextStyle(
+                fontSize = 15.sp
+            ),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) }
+        )
+        ExposedDropdownMenu(
+            expanded = isExpanded,
+            onDismissRequest = { isExpanded = false }
+        ) {
+            addresses.forEach { address ->
+                DropdownMenuItem(
+                    text = {
+                        Text(text = "${address.street}, " + "${address.city ?: ""}")
+                    },
+                    onClick = {
+                        selectedText = address.street
+                        isExpanded = false
+                        selectedId = address.id.toString()
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ErrorScreen(errorMessage: String?, onRetry: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(errorMessage ?: "Error desconocido")
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.Black,
+                contentColor = Color.White
+            )
+        ) {
+            Text("Volver al inicio", color = Color.White)
+        }
+    }
+}
+
+@Composable
+fun EmptyCartScreen() {
+    Column(
+        Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("No hay productos en el carrito")
+    }
+}
+
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+private fun CartContentLayout(
+    user_id: String,
+    cartItems: List<CartItemResponse>?,
+    navController: NavController,
+    cartItemsState: State<List<CartItemResponse>>,
+    cartViewModel: CartViewModel = viewModel(),
+
+    ) {
 
 
     LazyColumn(
@@ -178,30 +429,16 @@ private fun CartContentLayout(
                 )
             }
         }
-        if (isLoadingState.value) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(color = Color.Black)
-                    Text(
-                        text = "Cargando...",
-                        color = Color.Black,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp
-                    )
-                }
-            }
-        }
-        items(cartItems.size) { index ->
-            CartItem(
-                cartItemsState.value[index],
-                navController = navController,
-                cartViewModel = cartViewModel
-            )
 
+        cartItems?.let {
+            items(it.size) { index ->
+                CartItem(
+                    cartItemsState.value[index],
+                    navController = navController,
+                    cartViewModel = cartViewModel
+                )
+
+            }
         }
 
         item {
@@ -209,6 +446,7 @@ private fun CartContentLayout(
         }
     }
 }
+
 
 @Composable
 private fun CartItem(
@@ -449,6 +687,7 @@ fun CustomCounter(
 
 @Composable
 private fun BottomBar(
+    onProceedToPayment: () -> Unit,
     subtotal: String
 ) {
     BottomAppBar(
@@ -464,7 +703,6 @@ private fun BottomBar(
             colors = CardDefaults.cardColors(
                 containerColor = colorResource(R.color.elevated_card)
             ),
-            elevation = CardDefaults.elevatedCardElevation(10.dp, 0.dp, 0.dp, 10.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -489,8 +727,12 @@ private fun BottomBar(
                     )
                 }
                 Button(
+                    enabled = if (subtotal.toFloat() > 0) true else false,
                     elevation = ButtonDefaults.elevation(0.dp),
-                    onClick = {},
+                    onClick = {
+                        onProceedToPayment()
+
+                    },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Black,
 

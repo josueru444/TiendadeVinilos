@@ -8,6 +8,7 @@ data class ProductModel(
     val img_url: String,
     val description: String,
     val igGenre: Int,
+    val genre_name: String?,
     val createdAt: String,
     val modifiedAt: String
 )

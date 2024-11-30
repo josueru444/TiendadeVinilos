@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+
 }
 
 android {
@@ -28,6 +31,7 @@ android {
                 "proguard-rules.pro"
             )
         }
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -38,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -45,7 +50,6 @@ dependencies {
 
     //icons
     implementation("androidx.compose.material:material-icons-extended:1.7.4")
-    
     //Google Login
     implementation("com.github.stevdza-san:OneTapCompose:1.0.13")
 
@@ -60,6 +64,8 @@ dependencies {
 
     //livedata
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.messaging.ktx)
 
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 
@@ -67,18 +73,34 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     //Shimmer
-    implementation ("com.facebook.shimmer:shimmer:0.5.0")
-
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
 
     //
-    implementation ("com.google.accompanist:accompanist-pager:0.28.0")
+    implementation("com.google.accompanist:accompanist-pager:0.28.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
 
     //datastore
-    implementation ("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     //Fingerprint integration
     implementation("androidx.biometric:biometric:1.4.0-alpha02")
+
+    // Gemini
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+
+    // Loading
+    implementation("com.github.razaghimahdi:Compose-Loading-Dots:1.2.3")
+
+    //Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-inappmessaging-display")
+
+    implementation ("io.github.ehsannarmani:compose-charts:0.0.18")
+
+
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

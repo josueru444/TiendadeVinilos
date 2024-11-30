@@ -14,11 +14,13 @@ data class CartItemResponse(
     val stock: Int,
     val quantity: Int,
     val cart_id: String? = null,
+    val addresses: List<AddressModel>? = null,
 )
 
 data class GetCartResponse(
     val status: String,
     val cart: List<CartItemResponse>,
+    val addresses: List<AddressModel>,
 )
 
 data class GetItemsCartList(

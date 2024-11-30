@@ -1,12 +1,11 @@
-package com.example.tiendadevinilos.viewmodel
+package com.example.tiendadevinilos.ui.Cart
 
 import android.util.Log
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tiendadevinilos.model.AddressModel
 import com.example.tiendadevinilos.model.CartItemRequest
 import com.example.tiendadevinilos.model.CartItemResponse
 import com.example.tiendadevinilos.model.DeteleCartItemRequest
@@ -19,6 +18,9 @@ class CartViewModel : ViewModel() {
     private val _cartItems = MutableLiveData<List<CartItemResponse>>()
     val cartItems: MutableLiveData<List<CartItemResponse>> get() = _cartItems
 
+    private val _addresses = MutableLiveData<List<AddressModel>?>()
+    val addresses: MutableLiveData<List<AddressModel>?> get() = _addresses
+
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> get() = _errorMessage
 
@@ -28,8 +30,6 @@ class CartViewModel : ViewModel() {
     private val _responseStatus = MutableLiveData<Boolean>()
     val responseStatus: LiveData<Boolean> = _responseStatus
 
-    private val _count = mutableStateOf(0)
-    val count: State<Int> = _count
 
     fun resetResponseStatus() {
         _responseStatus.value = false
@@ -72,20 +72,19 @@ class CartViewModel : ViewModel() {
                     response.body()?.let { cartResponse ->
                         val cartItems = cartResponse.cart
                         _cartItems.value = cartItems
+                        val addresses = cartResponse.addresses
+                        Log.d("Addresses", addresses.toString())
+                        _addresses.value = addresses
                         _responseStatus.value = true
-                        Log.d("Response", cartItems.toString())
                     } ?: run {
                         _errorMessage.value = "La respuesta está vacía"
                         _responseStatus.value = false
-                        Log.e("Error", "La respuesta está vacía")
                     }
                 } else {
                     _errorMessage.value = "Error en la respuesta: ${response.errorBody()?.string()}"
                     _responseStatus.value = false
-                    Log.e("Error", "Error en la respuesta: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
-                Log.e("Error", "Error al Cargar el carrito: ${e.message}")
                 _errorMessage.value = "Error al Cargar el carrito: ${e.message}"
                 _responseStatus.value = false
             } finally {
@@ -142,7 +141,8 @@ class CartViewModel : ViewModel() {
                     // Filtra el elemento eliminado y actualiza _cartItems
                     _cartItems.value = _cartItems.value?.filter { it.id_vinyl != id_vinyl }
                 } else {
-                    _errorMessage.value = "Error al eliminar el producto: ${response.errorBody()?.string()}"
+                    _errorMessage.value =
+                        "Error al eliminar el producto: ${response.errorBody()?.string()}"
                     _responseStatus.value = false
                 }
             } catch (e: Exception) {

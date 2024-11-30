@@ -1,7 +1,6 @@
 package com.example.tiendadevinilos.ui.home
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,6 +61,7 @@ fun HomePage(
     loadingUser: Boolean
 
 ) {
+    val context = LocalContext.current
 
     //Productos
     val products = productViewModel.products.observeAsState(emptyList()).value
@@ -70,25 +71,14 @@ fun HomePage(
     val userGenreList =
         genreViewModel.userGenreList.observeAsState(initial = emptyList()).value ?: emptyList()
     val isLoadingGenre = genreViewModel.isLoading.observeAsState(initial = true).value
-    val context = LocalContext.current
 
-    if (!user_id.equals("") && !loadingUser) {
+    if ((!(user_id.equals("") || loadingUser) && userGenreList.isNullOrEmpty())) {
         LaunchedEffect(user_id) {
             genreViewModel.getUserGenre(user_id)
         }
-        Log.d("HomePage", "USERRRR: $user_id")
-        Log.d("HomePage", "userGenreList: $userGenreList")
     } else if (user_id.isBlank() && !loadingUser) {
         genreViewModel.clearIsLoading()
     }
-    Log.d("HomePage", "///////////////////////////")
-    Log.d("HomePage", "isLoading: $isLoadingProducts")
-    Log.d("HomePage", "isLoadingGenre: $isLoadingGenre")
-    Log.d("HomePage", "userGenreList: $userGenreList")
-    Log.d("HomePage", "user_id: $user_id")
-    Log.d("HomePage", "LoadingUser: $loadingUser")
-    Log.d("HomePage", "///////////////////////////")
-
 
     if (isLoadingProducts || isLoadingGenre || loadingUser) {
         SkeletonContent()
@@ -104,12 +94,10 @@ fun HomePage(
             genreData = userGenreList,
             carouselProducts = carouselProducts,
             navController = navController,
-            products = products
+            products = products.take(20)
         )
 
-    } else if (!user_id.isBlank() && userGenreList.isNullOrEmpty() && !isLoadingProducts && !isLoadingGenre) {
-        Toast.makeText(context, "useGenreList: ${userGenreList.toString()}", Toast.LENGTH_SHORT)
-            .show()
+    } else if (!user_id.isBlank() && userGenreList.isNullOrEmpty() && !isLoadingProducts && !isLoadingGenre && products.isNotEmpty()) {
         LaunchedEffect(Unit) {
             navController.navigate(Routes.genreSelectionPage)
         }
@@ -177,7 +165,9 @@ fun Content(
                 color = colorResource(R.color.product_name)
             )
         }
-        items(products.size) { index ->
+        val limitedProducts = products.take(20)
+
+        items(limitedProducts.size ) { index ->
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -201,8 +191,9 @@ fun Content(
                         border = BorderStroke(1.dp, Color.Black),
                     ) {
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
+
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             AsyncImage(
                                 modifier = Modifier.size(155.dp),
@@ -214,8 +205,9 @@ fun Content(
                                 modifier = Modifier
                                     .padding(horizontal = 8.dp)
                                     .fillMaxWidth(),
-                                text = products[index].name,
+                                text = products[index].name.toString(),
                                 fontSize = 20.sp,
+                                textAlign = TextAlign.Center,
                                 fontWeight = FontWeight.Medium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -322,6 +314,7 @@ fun ContentByGenre(
                                                     .fillMaxWidth(),
                                                 text = product?.name ?: "Sin Nombre",
                                                 fontSize = 20.sp,
+                                                textAlign = TextAlign.Center,
                                                 fontWeight = FontWeight.Medium,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,

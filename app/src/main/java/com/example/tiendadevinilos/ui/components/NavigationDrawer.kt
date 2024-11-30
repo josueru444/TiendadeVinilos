@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.ShoppingBag
@@ -65,8 +66,10 @@ fun ModalNavigationDrawerSample(
         DrawerItem("Inicio", Icons.Filled.Home),
         DrawerItem("Carrito", Icons.Filled.ShoppingCart),
         DrawerItem("Compras", Icons.Filled.ShoppingBag),
-        DrawerItem("Cerrar Sesión", Icons.Filled.Logout)
-    )
+        DrawerItem("Contáctanos", Icons.Filled.Email),
+        DrawerItem("Cerrar Sesión", Icons.Filled.Logout),
+
+        )
 
     val selectedItem = remember { mutableStateOf(drawerItems[0]) }
 
@@ -90,7 +93,7 @@ fun ModalNavigationDrawerSample(
 
                 Spacer(Modifier.height(12.dp))
                 drawerItems.forEach { item ->
-                    if (userName == "" && (item.name == "Carrito" || item.name == "Compras" || item.name == "Cerrar Sesión")) {
+                    if (userName == "" && (item.name == "Carrito" || item.name == "Compras" || item.name == "Cerrar Sesión" || item.name == "Contáctanos")) {
                         return@forEach
                     }
 
@@ -116,11 +119,10 @@ fun ModalNavigationDrawerSample(
                                         navController.navigate(Routes.homePage)
 
                                     }
-
                                     "Inicio" -> navController.navigate(Routes.homePage)
                                     "Carrito" -> navController.navigate(Routes.cartPage)
-                                    // "Compras" -> navController.navigate("comprasPage")
-
+                                    "Compras" -> navController.navigate(Routes.orderPage)
+                                    "Contáctanos" -> navController.navigate(Routes.chatPage)
                                 }
 
 
@@ -155,7 +157,11 @@ private fun ProfileSection(
                     scope.launch {
                         drawerState.close()
                     }
-                    navController.navigate("loginPage")
+                    if (userName == "") {
+                        navController.navigate(Routes.loginPage)
+                    } else {
+                        navController.navigate(Routes.homePage)
+                    }
                 }
             ),
         verticalAlignment = Alignment.CenterVertically
@@ -189,7 +195,7 @@ private fun ProfileSection(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "Ver perfil" ,
+                text = "Ver perfil",
                 color = colorResource(R.color.product_name),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,

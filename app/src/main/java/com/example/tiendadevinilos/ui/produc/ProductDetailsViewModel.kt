@@ -17,7 +17,7 @@ class ProductDetailsViewModel : ViewModel() {
     private val _isLoading = MutableLiveData<Boolean>(true)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    fun getProductById(id: Long) {
+    fun getProductById(id: String) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true

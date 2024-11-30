@@ -1,6 +1,5 @@
 package com.example.tiendadevinilos.ui.genreselection
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,11 +47,9 @@ fun GenreSelectionPage(
     navController: NavController
 ) {
     val genres = viewModel.genreList.observeAsState(emptyList()).value
-    Log.d("GenreSelectionPage", "genres: $genres")
     val context = LocalContext.current
     val selectedGenres = remember { mutableStateListOf<GenreModel>() }
     val isLoading = viewModel.isLoading.observeAsState(true).value
-    Log.d("GenreSelectionPage", "isLoading: $isLoading")
     LaunchedEffect(Unit) {
         viewModel.getGenreList()
     }
@@ -147,7 +144,6 @@ fun GenreSelectionPage(
                         },
                         onError = { error ->
                             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                            Log.e("GenreSelectionPage", error)
                         }
                     )
                 },
